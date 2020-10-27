@@ -1,25 +1,32 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Fragment} from 'react';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
+//*Routes
+import Inicio from './components/Routes/Inicio/Inicio';
+import Inspecciones from './components/Routes/Inspecciones/Inspecciones';
+import Capacitaciones from './components/Routes/Capacitaciones/Capacitaciones';
+import Vencimientos from './components/Routes/Vencimientos/Vencimientos';
+import Calendario from './components/Routes/Calendario/Calendario';
+//*Auth
+import Login from './components/Auth/Login';
+
+//*Layout components
+import Appbar from './components/Layout/Appbar';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Fragment>
+      <BrowserRouter>
+      <Route path='/login' exact component={Login} />
+      <Appbar />
+        <Switch>
+          <Route path='/' exact component={Inicio} />
+          <Route path='/inspecciones' exact component={Inspecciones} />
+          <Route path='/capacitaciones' exact component={Capacitaciones} />
+          <Route path='/vencimientos' exact component={Vencimientos} />
+          <Route path='/calendario' exact component={Calendario} />
+        </Switch>
+      </BrowserRouter>
+    </Fragment>
   );
 }
 
