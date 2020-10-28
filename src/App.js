@@ -1,5 +1,10 @@
 import React, {Fragment} from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
+//!Styles
+import 'primereact/resources/themes/mdc-light-indigo/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+import 'primeflex/primeflex.css';
 //*Routes
 import Inicio from './components/Routes/Inicio/Inicio';
 import Inspecciones from './components/Routes/Inspecciones/Inspecciones';
@@ -11,6 +16,7 @@ import Login from './components/Auth/Login';
 
 //*Layout components
 import Appbar from './components/Layout/Appbar';
+import { Card } from 'primereact/card';
 
 function App() {
   return (
