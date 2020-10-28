@@ -12,7 +12,7 @@ const Inspecciones = () => {
                     </div>
                     <div className="input-field col s6">
                     <input id="last_name" type="text" className="validate" />
-                    <label htmlFor="last_name">Last Name</label>
+                    <label htmlFor="last_name">Apellido</label>
                     </div>
                 </div>
                 <div className="row">
@@ -24,7 +24,7 @@ const Inspecciones = () => {
                 <div className="row">
                     <div className="input-field col s12">
                     <input id="password" type="password" className="validate" />
-                    <label htmlFor="password">Password</label>
+                    <label htmlFor="password">Contraseña</label>
                     </div>
                 </div>
                 <div className="row">
