@@ -19,7 +19,8 @@
     "react-dom": "^16.14.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
-    "react-transition-group": "^4.4.1"
+    "react-transition-group": "^4.4.1",
+    "sweetalert2": "^10.9.0"
   },
   "scripts": {
     "start": "react-scripts start",

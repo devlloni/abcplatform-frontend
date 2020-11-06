@@ -1,0 +1,78 @@
+.hamburguer-sidenav:hover{
+    color: #CF921A;
+    transition: .3s ease;
+}
+
+.hamburguer-sidenav{
+    color: white;
+    transition: .3s ease;
+}
+.sidenav-li a .fa, .sidenav-li a .far, .sidenav-li a .fas{
+    color: #E5C217;
+}
+.sidenav-li a {
+    
+}
+.sidenav-li{
+    height: 8%;
+}
+.sidenav-li:first-of-type{
+    margin-top: 5%;
+}
+.sidebar-header{
+    width: 100%;
+    background-color: #FAEDD1;
+    padding-bottom: 5%;
+}
+.sidebar-header .header-left{
+    /* background-color: blue; */
+    width: 40%;
+    font-size: 1.5em;
+    font-weight: 400;
+    font-family: 'Oswald', sans-serif;
+    margin-top: 10%;
+}
+.sidebar-header .header-left span{
+    text-transform: uppercase;
+    color: #E5C217;
+}
+.sidebar-header .header-right{
+    /* background-color: red; */
+    width: 60%;
+}
+.sidebar-header .header-right .sidebar-header-picture{
+    margin-top: 12%;
+    margin-left: 45%;
+}
+.sidebar-header .header-right .sidebar-header-picture img{
+    width: 6em;
+    height: 6em;
+}
+.sidebar-header .header-right .sidebar-header-info{
+    top:50%;
+}
+.sidebar-header-account{
+    /* background-color: #FFF; */
+    align-items: center;
+    text-align: right;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+.sidebar-header-account span{
+    margin-right: 3%;
+    cursor: pointer;
+}
+
+.accordion-account{
+    /* background-color: red; */
+    padding-bottom: 3em;
+}
+.collapsible-accordion li .collapsible-body{
+    /* position: absolute; */
+}
+.item-nav-dd{
+    padding-right: 0%;
+}
+.nav-accordion-body{
+    margin-left: 15%;
+}
