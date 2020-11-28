@@ -1,25 +1,62 @@
-import React, {Fragment, useState, useEffect} from 'react';
+import React, {Fragment, useState, useEffect, useContext} from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import M from 'materialize-css';
+import ProfilePicture from '../../assets/img/profile_pic.svg';
+//*HOOKS
+import useWindowSize from '../../hooks/useWindowSize';
+import AuthContext from '../../context/auth/authContext';
 
-const Appbar = () => {
-    const history = useHistory();
-    //Effect
-    useEffect( ()=>{
-        if(history.location.pathname.includes('/login')){
-          setShowBar('none');
-        }
-    }, [history])
-    document.addEventListener("DOMContentLoaded", function () {
-        var options = {};
-        var elems = document.querySelectorAll(".sidenav");
-        M.Sidenav.init(elems, options);
-      });
-    
-    const [ searching, setSearching ] = useState(false);
+const Appbar = (props) => {
+  const authContext = useContext(AuthContext);
+  const { cerrarSesion, autenticado, usuario, cargando, usuarioAutenticado } = authContext;
+  const { width } = useWindowSize();
+
+    //?States
     const [isSearching, setIsSearching] = useState(false);
     const [ dataSearching, setDataSearching ] = useState(null);
-    const [ showBar, setShowBar ] = useState('block');
+    const [ logueado, setLogueado ] = useState(false);
+    const [ userLogueado, setUserLogueado ] = useState(null)
+    const [isOnAuth, setIsOnAuth] = useState(false);
+    const history = useHistory();
+    let ruta = history.location.pathname;
+    //Effect
+    useEffect( ()=>{
+        if(autenticado && !cargando && usuario){
+          setLogueado(true);
+          setUserLogueado(usuario.usuario);
+        }
+        else{
+          setLogueado(false);
+        }
+      if(ruta.includes('/login') || ruta.includes('/registro'))
+      {
+        setIsOnAuth(true); 
+      }
+      else
+      {
+        setIsOnAuth(false);
+      }
+    }, [autenticado, cargando, usuario])
+    // useEffect(()=>{
+
+    //   if(ruta.includes('/login') || ruta.includes('/registro'))
+    //   {
+    //     setIsOnAuth(true); 
+    //   }
+    //   else
+    //   {
+    //     setIsOnAuth(false);
+    //   }
+    // },[history, props.history, autenticado])
+    let instance;
+    document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll(".sidenav");
+        instance = M.Sidenav.init(elems, {
+          inDuration: 400
+        });
+        var elemCollapsibles = document.querySelectorAll('.collapsible');
+        let instancia = M.Collapsible.init(elemCollapsibles, {});
+      });
 
     const navSearch = (
       <nav style={
@@ -27,6 +64,7 @@ const Appbar = () => {
       }
       >
           <div className="nav-wrapper">
+
             <form
               autoComplete="off"
               onSubmit={(e)=> e.preventDefault()}
@@ -49,6 +87,7 @@ const Appbar = () => {
         </nav>
     );
     const navMenu = (
+    <div>
       <nav
         style={
           {backgroundColor: '#E5C217'}
@@ -56,24 +95,33 @@ const Appbar = () => {
       >
         <div className="nav-wrapper">
             <Link to='/' className="brand-logo" style={
-              {marginLeft: '1em'}
+              width < 993 ? {cursor: 'default'} : {marginLeft: '2.5em'}
             }>ABC</Link>
-            <a href="#" data-target="mobile-demo" className="sidenav-trigger"><i className="material-icons">menu</i></a>
+            <div className='icon-menu-container'>
+              <a href="#" onClick={(e)=>{
+                e.preventDefault();
+                clickOnHamburguer(e);
+              }}
+              className='hamburguer-sidenav'
+              style={ {position: 'absolute', marginLeft: '1em'} }
+              data-target="mobile-demo"><i className="material-icons">menu</i></a>
+            </div>
+            {/* <a href="#" data-target="mobile-demo" className="sidenav-trigger"><i className="material-icons">menu</i></a> */}
             <ul id="nav-mobile" className="right hide-on-med-and-down">
                     <li><Link to='/calendario' >Calendario</Link></li>
                     <li><Link to='/vencimientos'>Vencimientos</Link></li>
-                    <li><Link to='/inspecciones'>Inspecciones</Link></li>
-                    <li><Link to='/capacitaciones'>Capacitaciones</Link></li>
+                    <li><Link to='/cuenta'>Cuenta</Link></li>
+                    <li><a href="!#" onClick={(e)=>handleCerrarSesion(e)}>Cerrar sesión</a></li>
                 <li><a onClick={(e)=> clickSearch(e)} href="!#"><i className="material-icons">search</i></a></li>
             </ul>
         </div>
       </nav>
+      </div>
     )
 
     const clickSearch = e => {
         e.preventDefault();
         setIsSearching(true);
-        setSearching(true);
         //Set focus to input
         setTimeout( () => {
           document.getElementById("search").focus();
@@ -91,7 +139,6 @@ const Appbar = () => {
         },
         onAutocomplete: function (texto, otraCosa){
           history.push(`/${texto}`);
-          setSearching(false);
           setIsSearching(false);
         }
       })
@@ -100,14 +147,12 @@ const Appbar = () => {
     const onCloseSearch = e => {
       if(!dataSearching){
         setIsSearching(false);
-        setSearching(false);
       }
     }
 
     const onSearchLeave = e => {
       if(e.target.value < 1){
         setIsSearching(false);
-        setSearching(false);
       }
     }
 
@@ -122,29 +167,120 @@ const Appbar = () => {
       }
     }
 
+    const clickOnSidenav = e => {
+        let instance = M.Sidenav.init(document.querySelectorAll('.sidenav'), {
+          outDuration: 400,
+          inDuration: 400
+        });
+        instance[0].close();
+    }
+    const clickOnHamburguer = e => {
+      let instance = M.Sidenav.init(document.querySelectorAll('.sidenav'), {
+        outDuration: 400,
+        inDuration: 400
+      });
+      instance[0].open();
+    }
+
+    const handleCerrarSesion = e => {
+      e.preventDefault();
+      clickOnSidenav();
+      cerrarSesion();
+    }
+    
+    const ItemListAdmin = () => {
+      let elements = []
+      elements.push(<li key={1}></li>)
+      //Administrador nivel 1.
+      //Administrador nivel 2.
+      //Administrador nivel 3.
+      //Administrador nivel 4.
+      if(userLogueado.administrador >= 4){
+        elements.push (
+          <li key={2} className='sidenav-li'>
+            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/companies'>
+              <i className="fas fa-building"></i>
+              Compañías
+            </Link>
+          </li>
+        )
+      }
+      //Administrador nivel 5.
+      if(userLogueado.administrador >= 5){
+        elements.push(
+          <li key={3} className='sidenav-li'>
+            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/empleados'>
+              <i className='fas fa-users'></i>
+              Empleados
+            </Link>
+          </li>
+        )
+      }
+      //Administrador nivel 6.
+      //Administrador nivel 7.
+      //Administrador nivel 8.
+      //Administrador nivel 9.
+      return( elements )
+    }
+
     return ( 
         <div style={
-          {display: showBar}
+          {display: isOnAuth ? 'none' : 'block'}
         }>
         {isSearching ? navSearch : navMenu}
-
         <ul className="sidenav" id="mobile-demo">
-          <li>
-            <a className="item-nav" href="sass.html">
-              Cupones <i className="material-icons">storage</i>
-            </a>
-          </li>
-          <li>
-            <a className="item-nav" href="badges.html">
-              Ayuda <i className="material-icons">help</i>
-            </a>
-          </li>
-          <li>
-            <a className="item-nav" href="collapsible.html">
-              {" "}
-              Mi cuenta <i className="material-icons">account_circle</i>
-            </a>
-          </li>
+          <div className='sidebar-header'>
+            <div className='row'>
+              <div className='col header-left'><span>ABC</span> Platform</div>
+                <div className='col header-right'>
+                    <div className='sidebar-header-picture'>
+                      <Link onClick={(e)=> clickOnSidenav(e)} to='/cuenta'>
+                        <img 
+                          src={ProfilePicture}
+                          alt="Foto de perfil"
+                        />
+                      </Link>
+                    </div>
+                </div>
+              </div>
+              <div className='sidebar-header-account'>
+                <span>{logueado ? 
+                (`${userLogueado.nombre} ${userLogueado.apellido}`)  
+                : ('Cargando...')
+              }
+              
+              </span>
+              </div>
+            </div>
+              {/* a */}
+              <li className="">
+                <ul className="collapsible collapsible-accordion">
+                  <li>
+                    <hr></hr>
+                    <a className="collapsible-header">Mi cuenta <i className="material-icons">arrow_drop_down</i></a>
+                    
+                    <div className="collapsible-body nav-accordion-body">
+                      <ul>
+                        <li className='sidenav-li'><Link className='item-nav-dd' to='/cuenta'><i className='fa fa-user'></i> Cuenta</Link></li>
+                        <li className='sidenav-li'><Link className='item-nav-dd' to='/cuenta'><i className='fas fa-clipboard-list'></i> Acceso</Link></li>
+                        <li className='sidenav-li'><Link className='item-nav-dd' to='/cuenta'><i className='fas fa-cog'></i> Configuracion</Link></li>
+                        <li className='sidenav-li'><a className='item-nav-dd' href='!#' onClick={(e)=> handleCerrarSesion(e)} ><i className='fas fa-sign-out-alt'></i> Cerrar sesión</a></li>
+                      </ul>
+                    </div>
+                    <hr></hr>
+                  </li>
+                </ul>
+            </li>
+              {/* MENU DE NAVEGACION */}
+            <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/' > <i className='fas fa-home'></i> Inicio</Link></li>
+            <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/calendario' > <i className='fa fa-calendar-alt'></i> Calendario</Link></li>
+            <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/vencimientos'><i className="far fa-clipboard"></i>Vencimientos</Link></li>
+            <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/inspecciones'><i className="fas fa-clipboard-list"></i>Inspecciones</Link></li>
+            <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/capacitaciones'><i className="fas fa-book-open"></i>Capacitaciones</Link></li>
+            <hr></hr>
+            {/* ITEMS WITH ADMIN CONDITIONS */}
+            { userLogueado ? (<ItemListAdmin />) : null }
+            
         </ul>
       </div>
      );

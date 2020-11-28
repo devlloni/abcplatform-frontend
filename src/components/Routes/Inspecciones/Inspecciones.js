@@ -1,13 +1,17 @@
 import React from 'react';
+import { Editor } from 'primereact/editor';
 
 const Inspecciones = () => {
+
+    const [ terminos, setTerminos ] = React.useState('Terminos y condiciones de la capacitación realizada');
+
     return ( 
         <div className='container' style={styles.container}>
             <div className="row">
                 <form className="col s12">
                 <div className="row">
                     <div className="input-field col s6">
-                    <input placeholder="" id="first_name" type="text" className="validate" />
+                    <input id="first_name" type="text" className="validate" />
                     <label htmlFor="first_name">First Name</label>
                     </div>
                     <div className="input-field col s6">
@@ -33,14 +37,18 @@ const Inspecciones = () => {
                     <label htmlFor="email">Email</label>
                     </div>
                 </div>
-                <div className="row">
+                <div className="row mt-4">
                     <div className="col s12">
-                    This is an inline input field:
-                    <div className="input-field inline">
-                        <input id="email_inline" type="email" className="validate" />
-                        <label htmlFor="email_inline">Email</label>
-                        <span className="helper-text" data-error="wrong" data-success="right">Helper text</span>
+                        <Editor 
+                            value={terminos}
+                            onTextChange={(e)=> setTerminos(e.htmlValue)}
+                        />
                     </div>
+                </div>
+                <div className='row'>
+                    <div className='col'></div>
+                    <div className='col'>
+                        <button className='btn btn-block teal darken-1'> Guardar cambios</button>
                     </div>
                 </div>
                 </form>
@@ -52,7 +60,8 @@ const Inspecciones = () => {
 const styles = {
     container:{
         marginTop: '20px'
-    }
+    },
+    
 }
  
 export default Inspecciones;

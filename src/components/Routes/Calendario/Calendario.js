@@ -96,17 +96,6 @@ const Calendario = () => {
             setAddTime(null);
             setShowDialog(false);
         }
-    } 
-
-    const tryNewEvent = () => {
-        setEvents([
-            ...events,
-            {
-                id: 9,
-                title: 'Nuevo evento prueba',
-                start: new Date()
-            }
-        ])
     }
 
     const handleEventClick = (clickInfo) => {
