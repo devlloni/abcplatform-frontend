@@ -1,11 +1,13 @@
 import React, {Fragment, useState, useEffect, useContext} from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import M from 'materialize-css';
+import Swal from 'sweetalert2';
 import ProfilePicture from '../../assets/img/profile_pic.svg';
 //*HOOKS
 import useWindowSize from '../../hooks/useWindowSize';
 import AuthContext from '../../context/auth/authContext';
-
+import CriptoRandomString from 'crypto-random-string';
+import { ScrollPanel } from 'primereact/scrollpanel';
 const Appbar = (props) => {
   const authContext = useContext(AuthContext);
   const { cerrarSesion, autenticado, usuario, cargando, usuarioAutenticado } = authContext;
@@ -108,11 +110,13 @@ const Appbar = (props) => {
             </div>
             {/* <a href="#" data-target="mobile-demo" className="sidenav-trigger"><i className="material-icons">menu</i></a> */}
             <ul id="nav-mobile" className="right hide-on-med-and-down">
-                    <li><Link to='/calendario' >Calendario</Link></li>
+                    {/* <li><Link to='/calendario' >Calendario</Link></li>
                     <li><Link to='/vencimientos'>Vencimientos</Link></li>
-                    <li><Link to='/cuenta'>Cuenta</Link></li>
-                    <li><a href="!#" onClick={(e)=>handleCerrarSesion(e)}>Cerrar sesión</a></li>
+                    <li><Link to='/cuenta'>Cuenta</Link></li> */}
                 <li><a onClick={(e)=> clickSearch(e)} href="!#"><i className="material-icons">search</i></a></li>
+                <li><a href="!#" onClick={(e)=>handleCerrarSesion(e)}> 
+                      <i className='fas fa-sign-out-alt' style={{fontSize: '1em'}}></i> Cerrar sesión</a>
+                </li>
             </ul>
         </div>
       </nav>
@@ -135,7 +139,10 @@ const Appbar = (props) => {
           "Calendario": null,
           "Vencimientos": null,
           "Inspecciones": 'https://placehold.it/250x250',
-          "Capacitaciones": null
+          "Capacitaciones": null,
+          "Empleados": null,
+          "Companies": null,
+          "Sucursales": null
         },
         onAutocomplete: function (texto, otraCosa){
           history.push(`/${texto}`);
@@ -184,38 +191,82 @@ const Appbar = (props) => {
 
     const handleCerrarSesion = e => {
       e.preventDefault();
-      clickOnSidenav();
-      cerrarSesion();
+      // clickOnSidenav();
+      // cerrarSesion();
+      //!start
+      Swal.fire({
+        title: 'Cerrar sesión',
+        text: '¿Está seguro de cerrar sesión?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Si, cerrar sesión.',
+        cancelButtonText: 'No, me quedaré.'
+      }).then((result) => {
+        if (result.value) {
+          clickOnSidenav();
+          cerrarSesion();
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          clickOnSidenav();
+          return;
+        }
+      })
+      //!end
     }
     
     const ItemListAdmin = () => {
       let elements = []
-      elements.push(<li key={1}></li>)
+      elements.push(<li key={CriptoRandomString({length: 8, type: 'numeric'})}></li>)
       //Administrador nivel 1.
       //Administrador nivel 2.
       //Administrador nivel 3.
       //Administrador nivel 4.
       if(userLogueado.administrador >= 4){
-        elements.push (
-          <li key={2} className='sidenav-li'>
-            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/companies'>
-              <i className="fas fa-building"></i>
-              Compañías
-            </Link>
-          </li>
-        )
-      }
-      //Administrador nivel 5.
-      if(userLogueado.administrador >= 5){
-        elements.push(
-          <li key={3} className='sidenav-li'>
+        elements.push ([
+          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
             <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/empleados'>
               <i className='fas fa-users'></i>
               Empleados
             </Link>
+          </li>,
+          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/companies'>
+              <i className="fas fa-building"></i>
+              Compañías
+            </Link>
+          </li>,
+          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/sucursales'>
+              <i className="fas fa-store-alt"></i>
+              Sucursales
+            </Link>
+          </li>,
+          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+          <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/sectorestrabajo'>
+            <i className="fas fa-vector-square"></i>
+            Sectores de Trabajo
+          </Link>
+          </li>,
+          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+          <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/lugarestrabajo'>
+            <i className="fas fa-map-pin"></i>
+            Lugares de Trabajo
+          </Link>
+          </li>,
+          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+          <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/puestostrabajo'>
+            <i className="fas fa-briefcase"></i>
+            Puestos de Trabajo
+          </Link>
           </li>
+          ]
         )
       }
+      //Administrador nivel 5.
+      // if(userLogueado.administrador >= 5){
+      //   elements.push(
+          
+      //   )
+      // }
       //Administrador nivel 6.
       //Administrador nivel 7.
       //Administrador nivel 8.
@@ -225,7 +276,7 @@ const Appbar = (props) => {
 
     return ( 
         <div style={
-          {display: isOnAuth ? 'none' : 'block'}
+          {display: isOnAuth || !logueado ? 'none' : 'block'}
         }>
         {isSearching ? navSearch : navMenu}
         <ul className="sidenav" id="mobile-demo">
@@ -261,25 +312,28 @@ const Appbar = (props) => {
                     
                     <div className="collapsible-body nav-accordion-body">
                       <ul>
+                        <ScrollPanel>
                         <li className='sidenav-li'><Link className='item-nav-dd' to='/cuenta'><i className='fa fa-user'></i> Cuenta</Link></li>
                         <li className='sidenav-li'><Link className='item-nav-dd' to='/cuenta'><i className='fas fa-clipboard-list'></i> Acceso</Link></li>
                         <li className='sidenav-li'><Link className='item-nav-dd' to='/cuenta'><i className='fas fa-cog'></i> Configuracion</Link></li>
                         <li className='sidenav-li'><a className='item-nav-dd' href='!#' onClick={(e)=> handleCerrarSesion(e)} ><i className='fas fa-sign-out-alt'></i> Cerrar sesión</a></li>
+                        </ScrollPanel>
                       </ul>
                     </div>
-                    <hr></hr>
                   </li>
                 </ul>
             </li>
+            
               {/* MENU DE NAVEGACION */}
+              <ScrollPanel className='custom-scrollpanel'>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/' > <i className='fas fa-home'></i> Inicio</Link></li>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/calendario' > <i className='fa fa-calendar-alt'></i> Calendario</Link></li>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/vencimientos'><i className="far fa-clipboard"></i>Vencimientos</Link></li>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/inspecciones'><i className="fas fa-clipboard-list"></i>Inspecciones</Link></li>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/capacitaciones'><i className="fas fa-book-open"></i>Capacitaciones</Link></li>
-            <hr></hr>
+              </ScrollPanel>
             {/* ITEMS WITH ADMIN CONDITIONS */}
-            { userLogueado ? (<ItemListAdmin />) : null }
+            { userLogueado ? (<ScrollPanel className='custom-scrollpanel' ><ItemListAdmin /></ScrollPanel>) : null }
             
         </ul>
       </div>

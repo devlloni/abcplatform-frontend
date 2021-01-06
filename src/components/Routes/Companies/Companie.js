@@ -50,18 +50,19 @@ const Companie = () => {
         cityCompanie: '',
         stateCompanie: '',
         ciiuCompanie: '',
+        nroContratoCompanie: '',
         artCompanie: '',
         emailCompanie: '',
         phoneCompanie: ''
     }
     //?EFFECTS
     useEffect( ()=>{
-        test();
+        getCompanies();
         // if(!companies){
         //     test();
         // }
     }, [])
-    const test =  async ( ) => {
+    const getCompanies =  async ( ) => {
         const token = localStorage.getItem('token');
         const resp = await clienteAxios.get('/companias', {
             headers: {
@@ -84,6 +85,16 @@ const Companie = () => {
         myToast.current.show({severity: severityValue, summary: summaryValue, detail: detailValue});   
     }
 
+    const submitEditCompanie = async comp => {
+        const resp = await clienteAxios.post('/companias/update',  comp);
+        if(resp.status === 200 && resp.data.msg === 'ok'){
+            setCompanieDialog(false);
+            reiniciarCompania();
+            getCompanies();
+            return showToast('success', '¡Exito!', 'Companía actualizada correctamente.');
+        }
+    }
+
     const submitNewCompanie = async e => {
         setEnviado(true);
         //*Validaciones
@@ -103,8 +114,8 @@ const Companie = () => {
         else{
             if(companie._id){
                 //Actualizando compañía
-                setCompanieDialog(false);
-                return showToast('warn', 'Warn message', 'Accion deshabilitada momentaneamente, actualización disponible pronto.');
+                return submitEditCompanie(companie);
+                // return showToast('warn', 'Warn message', 'Accion deshabilitada momentaneamente, actualización disponible pronto.');
 
             }
             else{
@@ -180,6 +191,10 @@ const Companie = () => {
     const hideDialog = () => {
         setEnviado(false);
         setCompanieDialog(false);
+        reiniciarCompania();
+    }
+
+    const reiniciarCompania = () => {
         setCompanie({
             id: null,
             razonSocial: '',
@@ -194,6 +209,7 @@ const Companie = () => {
             phoneCompanie: ''
         })
     }
+
     const leftToolbarTemplate = () =>{
         return(
             <Fragment>
@@ -326,6 +342,7 @@ const Companie = () => {
             margin: '0.8em'
         }}>
                 <Toast ref={myToast} />
+                <h3 className='center'>Companías</h3>
                 <div className="card">
                     <div className="p-grid p-fluid" style={{
                                 marginTop: '1em',
@@ -359,7 +376,9 @@ const Companie = () => {
                         />
                         </div>
                     </div>
-                    <DataTable  value={companies} className="p-datatable-responsive-demo" paginator rows={4} header="Compañías">
+                    {/* DATATABLE */}
+                    {companies ? (
+                        <DataTable  value={companies} className="p-datatable-responsive-demo" paginator rows={4} header="Compañías">
                         <Column field="razonSocial" header="Razón social" body={razonSocialBodyTemplate} />
                         
                         {width > 370 ? (
@@ -381,8 +400,14 @@ const Companie = () => {
                         :null
                         }
                     </DataTable>
+                    ):
+                    (
+                        <div className='center p-mt-6 p-mb-6'>
+                            <ProgressSpinner />
+                        </div>
+                    )}
                 </div>
-                {/*//!!//!! */}
+                {/*//!!//!! DIALOGS*/}
                     <Dialog
                         visible={companieDialog}
                         style={ width < 993 ? {width:'450px'} : {width: '750px'} } 
@@ -430,17 +455,31 @@ const Companie = () => {
                     </div>
                 <div className='p-grid p-fluid'>
                     <div className="p-col-12 p-md-6 p-field">
+                        <label htmlFor="artCompanie">A.R.T</label>
+                        <InputText id="artCompanie" type="text" name="artCompanie" value={companie.artCompanie} onChange={(e) => onInputChange(e)} 
+                        required className={classNames({ 'p-invalid': enviado && !companie.artCompanie })} />
+                        {enviado && !companie.artCompanie && <small className="p-invalid">A.R.T es requerido.</small>}
+                    </div>
+                    <div className="p-col-12 p-md-6 p-field">
+                        <label htmlFor="nroContratoCompanie">Nro. Contrato</label>
+                        <InputText id="nroContratoCompanie" type="number" name="nroContratoCompanie" value={companie.nroContratoCompanie} onChange={(e) => onInputChange(e)} required autoFocus 
+                        className={classNames({ 'p-invalid': enviado && !companie.nroContratoCompanie })} />
+                        {enviado && !companie.nroContratoCompanie && <small className="p-invalid">El Nro. de contrato es requerido.</small>}
+                    </div>
+                </div>
+                <div className='p-grid p-fluid'>
+                    <div className="p-col-12 p-md-6 p-field">
                         <label htmlFor="ciiuCompanie">C.I.I.U</label>
                         <InputText id="ciiuCompanie" name="ciiuCompanie" value={companie.ciiuCompanie} onChange={(e) => onInputChange(e)} required autoFocus 
                         className={classNames({ 'p-invalid': enviado && !companie.ciiuCompanie })} />
                         {enviado && !companie.ciiuCompanie && <small className="p-invalid">El C.I.I.U es requerido.</small>}
                     </div>
-                    <div className="p-col-12 p-md-6 p-field">
+                    {/* <div className="p-col-12 p-md-6 p-field">
                         <label htmlFor="artCompanie">A.R.T</label>
-                        <InputText id="artCompanie" name="artCompanie" value={companie.artCompanie} onChange={(e) => onInputChange(e)} 
+                        <InputText id="artCompanie" type="number" name="artCompanie" value={companie.artCompanie} onChange={(e) => onInputChange(e)} 
                         required className={classNames({ 'p-invalid': enviado && !companie.artCompanie })} />
                         {enviado && !companie.artCompanie && <small className="p-invalid">A.R.T es requerido.</small>}
-                    </div>
+                    </div> */}
                 </div>
                 <div className='divider mt3'></div>
                 <div className='center'>Datos de contacto</div>

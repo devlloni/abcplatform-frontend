@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import Spinner from '../../Layout/Spinner';
 import { InputText } from 'primereact/inputtext';
+import { Tooltip } from 'primereact/tooltip';
 
 import './Login.css';
 import Wave from '../../../assets/img/wave.png';
@@ -21,13 +22,12 @@ const Login = (props) => {
     //Get the context
     const authContext = useContext(AuthContext);
     const { mensaje, autenticado, iniciarSesion, usuarioAutenticado } = authContext;
-
+ 
     // Effect de autenticacion
     useEffect( ()=>{
         if(autenticado){
             props.history.push('/');
         }
-       
     }, [ autenticado, props.history] );
 
     // States & Hooks
@@ -36,14 +36,19 @@ const Login = (props) => {
         email: '',
         password: ''
     });
+    const [ showPass, setShowPass ] = useState(false);
     const [ error, setError ] = React.useState(false);
     const { email, password } = data;
 
     useEffect( ()=> {
-        if(mensaje && submitLogin){
-            Swal.fire('Oops..', mensaje.msg, 'error');
+        if(mensaje){
+            Swal.fire('Oops..', mensaje, 'error');
+            setData({
+                ...data,
+                password: ''
+            })
         }  
-    }, [mensaje, submitLogin])
+    }, [mensaje])
 
     //HandleLogin
     const handleLogin = e => {
@@ -122,13 +127,19 @@ const Login = (props) => {
                         </div>
                         <div className='input-form-dello'>
                             <div className="p-inputgroup">
-                                <span className="p-inputgroup-addon">
+                                <span className="p-inputgroup-addon" style={{
+                                    backgroundColor: showPass ? '#EA856F' : '#ffffff',
+                                    cursor: 'pointer'
+                                    }}
+                                    onClick={()=> setShowPass(!showPass)}
+                                    tooltip={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                >
                                     <i className="pi pi-lock"></i>
                                 </span>
                                 <InputText
                                 id="passwordInput"
                                 name="password"
-                                type="password"
+                                type={showPass ? 'text' : 'password'}
                                 disabled={submitLogin}
                                 value={password}
                                 onChange={(e)=> handleChange(e)}
