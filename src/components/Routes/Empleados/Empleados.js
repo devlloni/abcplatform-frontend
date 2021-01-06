@@ -1,9 +1,9 @@
 import React, {Fragment, useState, useEffect, useRef} from 'react';
-
-import { emptyEmpleado } from '../../../hooks/store/empleadoStore';
+import getRolName from '../../../helpers/userRoles';
 import clienteAxios from '../../../config/clienteAxios';
 import classNames from 'classnames'
 import useWindowSize from '../../../hooks/useWindowSize';
+import moment from 'moment';
 //prime Components
 import { Toast } from 'primereact/toast';
 import { InputMask } from 'primereact/inputmask';
@@ -14,11 +14,19 @@ import { Dropdown } from 'primereact/dropdown';
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column';
 import { Dialog } from 'primereact/dialog';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { Calendar } from 'primereact/calendar';
+import { ScrollPanel } from 'primereact/scrollpanel';
+//!!!!!AGREGAR NUM_LEGAJO PARA EMPLEADO
+
+
 
 // import { ProgressSpinner } from 'primereact/progressspinner';
 const Empleados = () => {
     document.title = "ABC | Empleados"
     const { width } = useWindowSize();
+    const [ roles, setRoles ] = useState(null);
+    const [ globalFilter, setGlobalFilter ] = useState('');
     //
     const [ empleados, setEmpleados ] = useState(null);
     const [ empleadoDialog, setEmpleadoDialog ] = useState(false);
@@ -35,20 +43,36 @@ const Empleados = () => {
         localidad: '',
         provincia: '',
         cuil: '',
-        telefonoContacto: ''
+        telefonoContacto: '',
+        lugar: '',
+        sector: '',
+        fechaIngreso: '',
+        branchoffice: '',
+        profesion: '',
+        userRole: ''
     });
     const [ companias, setCompanias ] = useState([]);
+    const [ branchoffices, setBranchoffices ] = useState(null);
     const [ deleteDialog, setDeleteDialog ] = useState(false);
     const [ selectedEmpleado, setSelectedEmpleado ] = useState(false);
     const [ confirmApellido, setConfirmApellido ] = useState('');
     const [ puedeBorrar, setPuedeBorrar ] = useState(false);
     const [ showPass, setShowPass ] = useState(false);
     const { email, nombre, apellido, password, administrador, compania,
-         direccion, localidad, provincia, cuil, telefonoContacto } = empleado;
+         direccion, localidad, provincia, cuil, telefonoContacto, fechaIngreso } = empleado;
 
     const getEmpleados = async () => {
         const resp = await clienteAxios.get('/usuarios/empleados');
         setEmpleados(resp.data.empleados);
+    }
+    const getRoles = async () => {
+        const resp = await clienteAxios.get('/roles/');
+        let rolesResp = resp.data.roles;
+        let arr = [];
+        for(let i = 0; i < resp.data.roles.length; i++){
+            arr.push({label: rolesResp[i].name, value: rolesResp[i]._id});
+        }
+        setRoles(arr);
     }
 
     const getCompanies = async () => {
@@ -61,12 +85,39 @@ const Empleados = () => {
         setCompanias(arr);
     }
 
+    const getBranchoffices = async () => {
+        const resp = await clienteAxios.get('/branchoffices');
+        let respuesta = resp.data;
+        if(compania){
+            console.log('hay compania');
+            let arr = [];
+            respuesta.map( item=> {
+                if(item.compania == compania){
+                    arr.push({label: item.nombre, value: item._id});
+                }
+            });
+            setBranchoffices(arr);
+        }else{
+            console.log('no hay compania');
+        }
+    }
+
     //Toast
     const myToast = useRef(null);
     const showToast = (severityValue, summaryValue, detailValue) => {   
         myToast.current.show({severity: severityValue, summary: summaryValue, detail: detailValue});   
     }
+
+    useEffect( ()=>{
+        if(compania){
+            getBranchoffices()
+        }
+    }, [compania])
+
     useEffect(() => {
+        if(!roles){
+            getRoles();
+        }
         if(!empleados){
             getEmpleados();
         }
@@ -77,15 +128,53 @@ const Empleados = () => {
 
 
     //?  FUNCTIONS
+
+    const reiniciarEmpleado = () => {
+        setEmpleado({
+            id: null,
+            email: '',
+            nombre: '',
+            apellido: '',
+            password: '',
+            administrador: '',
+            compania: '',
+            direccion: '',
+            localidad: '',
+            provincia: '',
+            cuil: '',
+            telefonoContacto: '',
+            lugar: '',
+            sector: '',
+            fechaIngreso: '',
+            branchoffice: '',
+            profesion: '',
+            userRole: ''
+        });
+    }
+
     const showEmpleadoDialog = e => {
         setEmpleadoDialog(true);
     }
+
+    const submitEditEmpleado = async (emp)  => {
+        const resp = await clienteAxios.post('/empleados/update', emp);
+        if(resp.status === 200 && resp.data.msg === 'ok'){
+            getEmpleados();
+            setEmpleadoDialog(false);
+            reiniciarEmpleado()
+            return showToast('success', '¡Exito!', 'Empleado/usuario editado correctamente.');
+        }else{
+            return showToast('error', '¡Error!', 'Ocurrió un error inesperado, por favor, inténtalo más tarde.');
+        }
+        
+    }
+
     const submitNewEmpleado = async () => {
         setEnviado(true);
         if( !email  || email.length === 0 ||
             !nombre || nombre.length === 0 || 
             !apellido || apellido.length === 0 ||
-            !password || password.length === 0 ||
+            // !password || password.length === 0 ||
             !compania || compania.length === 0  ||
             // !direccion || direccion.length === 0 ||
             !localidad || localidad.length === 0  ||
@@ -96,7 +185,7 @@ const Empleados = () => {
                 return showToast('error', '¡Error!', '¡Completa todos los campos!'); 
             }
             if(empleado._id){
-                return showToast('warn', 'Precaucion', 'Función no implementada momentaneamente.');
+                return submitEditEmpleado(empleado);
             }else{
                 const token = localStorage.getItem('token');
                 empleado.administrador = 0;
@@ -140,26 +229,12 @@ const Empleados = () => {
     const hideDialog = e => {
         setEmpleadoDialog(false);
         setEnviado(false);
-        setEmpleado({
-            id: null,
-            email: '',
-            nombre: '',
-            apellido: '',
-            password: '',
-            administrador: ''
-        })
+        reiniciarEmpleado()
     }
     const hideDeleteDialog = e => {
         setDeleteDialog(false);
         setSelectedEmpleado(null);
-        setEmpleado({
-            id: null,
-            email: '',
-            nombre: '',
-            apellido: '',
-            password: '',
-            administrador: ''
-        })
+        reiniciarEmpleado()
     }
     
     const handleConfirmApellido = e => {
@@ -173,20 +248,26 @@ const Empleados = () => {
     }
 
     const onInputChange = e => {
+        if(e.target.name === 'userRole'){
+            if(getRolName(e.target.value) === "Empleado"){
+                setEmpleado({
+                    ...empleado,
+                    password: ''
+                });
+            }
+        }
         setEmpleado({
             ...empleado,
             [e.target.name] : e.target.value
         });
     }
 
-    const editEmpleado = empleado => {
-        setEmpleado(empleado);
-        // console.log(empleados);
-        // let a = empleados.filter( emp => {
-        //     return emp._id === empleado._id
-        // });
-        // console.log(a[0]);
-        // setEmpleado(a[0]);
+    const editEmpleado = emp => {
+        let newDate = new Date(emp.fechaIngreso);
+        setEmpleado({
+            ...emp,
+            fechaIngreso: newDate
+        })
         setEmpleadoDialog(true);
     }
 
@@ -223,7 +304,17 @@ const Empleados = () => {
             'Cargando...'}
         </Fragment>
         
-    )
+    );
+
+    const TableHeader = (
+        <div className="table-header">
+                Lista de empleados
+                <span className="p-input-icon-left">
+                    <i className="pi pi-search" />
+                    <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Filtros globales" />
+                </span>
+            </div>
+    );
 
     const actionBody = (rawData) => {
         return(
@@ -259,16 +350,16 @@ const Empleados = () => {
         return (
             <Fragment>
                 <span className="p-column-title"></span>
-                {rowData.nombre}
+                {rowData.nombre} {rowData.apellido}
             </Fragment>
         )
      }
 
-     const apellidoBodyTemplate = rowData => {
+     const cuilBodyTemplate = rowData => {
         return (
             <Fragment>
                 <span className="p-column-title"></span>
-                {rowData.apellido}
+                {rowData.cuil}
             </Fragment>
         )
      }
@@ -320,12 +411,22 @@ const Empleados = () => {
                                 />
                             </div>
                     </div>
-                        {/* DATATABLE */}
-                        <DataTable value={empleados} className="p-datatable-responsive-demo" paginator rows={4} header="Empleados">
-                        <Column field="nombre" header="Nombre" body={nombreBodyTemplate} />
+                    {empleados ? (
+                        <DataTable 
+                            value={empleados} 
+                            className="p-datatable-responsive-demo" 
+                            paginator rows={4} 
+                            header={TableHeader}
+                            globalFilter={globalFilter}
+                        >
+                        <Column field="nombre" header="Nombre" body={nombreBodyTemplate}
+                        filter={width < 992 ? false : true} filterPlaceholder="Buscar por Nombre"
+                        />
                         
                         {width > 370 ? (
-                            <Column field="apellido" header="Apellido" body={apellidoBodyTemplate} />
+                            <Column field="cuil" header="CUIL" body={cuilBodyTemplate} 
+                            filter={width < 992 ? false : true} filterPlaceholder="Buscar por CUIL"
+                            />
                         ): null }
                         {width > 560 ? (
                             <Column field="email" header="E-Mail" body={emailBodyTemplate} />
@@ -342,7 +443,16 @@ const Empleados = () => {
                         )
                         :null
                         }
-                    </DataTable>
+                    
+                        </DataTable>
+                    ) : 
+                    (
+                    <div className='center p-mt-6 p-mb-6'>
+                        <ProgressSpinner />
+                    </div>
+                    )}
+                        {/* DATATABLE */}
+                        
                     {/*/ //!DIALOGS */}
                 <Dialog
                         visible={empleadoDialog}
@@ -352,6 +462,20 @@ const Empleados = () => {
                         footer={dialogCompanieFooter()} 
                         onHide={()=>hideDialog()}
                     >
+                    <div className='p-grid p-fluid'>
+                        <div className='p-col-12'>
+                            <Dropdown 
+                                value={empleado.userRole} 
+                                name="userRole"
+                                id="userRole"
+                                options={roles} 
+                                className={classNames({ 'p-invalid': enviado && !empleado.userRole })}
+                                onChange={(e) => onInputChange(e)} 
+                                placeholder="¿Qué rol tendrá el usuario?"
+                            />
+                            {enviado && !empleado.userRole && <small className="p-invalid">El rol es requerido.</small>}
+                        </div>
+                    </div> 
                     <div className='p-grid p-fluid'>
                         <div className='p-col-12'>
                             <Dropdown 
@@ -393,20 +517,61 @@ const Empleados = () => {
                             position: 'bottom'
                         }}
                         tooltip="Ésta clave es temporal, el empleado deberá cambiarla." 
-                        disabled={empleado._id ? true : false}
+                        disabled={empleado._id || !empleado.userRole || getRolName(empleado.userRole) === "Empleado" ? true : false}
                         type={empleado._id ? 'password' : 'text'}
                         id="password" name="password" value={empleado.password} onChange={(e) => onInputChange(e)} 
                         required className={classNames({ 'p-invalid': enviado && !empleado.password })} />
                         {enviado && !empleado.password && <small className="p-invalid">La contraseña es requerida.</small>}
                         </div>
+                </div>
+                <div className='p-grid p-fluid'>
+                    <div className="p-col-12 p-md-6 p-field">
+                        <label htmlFor="lugar">Lugar</label>
+                        <InputText id="lugar" type="text" name="lugar" value={empleado.lugar} onChange={(e) => onInputChange(e)} required 
+                        className={classNames({ 'p-invalid': enviado && !empleado.lugar })} />
+                        {enviado && !empleado.lugar && <small className="p-invalid">El lugar es requerido.</small>}
                     </div>
+                    <div className="p-col-12 p-md-6 p-field">
+                        <label htmlFor="password">Sector</label>
+                        <InputText tooltipOptions={{
+                            position: 'bottom'
+                        }}
+                        type='text'
+                        id="sector" name="sector" value={empleado.sector} onChange={(e) => onInputChange(e)} 
+                        required className={classNames({ 'p-invalid': enviado && !empleado.sector })} />
+                        {enviado && !empleado.sector && <small className="p-invalid">El sector es requerido.</small>}
+                    </div>
+                </div>
+                <div className='p-grid p-fluid'>
+                    <div className="p-col-12 p-md-6 p-field">
+                        <label htmlFor="fechaIngreso">Fecha de ingreso</label>
+                        <Calendar dateFormat='dd/mm/yy' value={fechaIngreso} name="fechaIngreso" id="fechaIngreso" onChange={(e) => onInputChange(e)}
+                        className={classNames({ 'p-invalid': enviado && !fechaIngreso })}
+                        ></Calendar>
+                        {enviado && !fechaIngreso && <small className="p-invalid">La fecha de ingreso es requerida.</small>}
+                    </div>
+                    <div className="p-col-12 p-md-6 p-field">
+                        <label htmlFor="branchoffice">Sucursal</label>
+                        <Dropdown 
+                                value={empleado.branchoffice} 
+                                name="branchoffice"
+                                id="branchoffice"
+                                disabled={compania ? false : true}
+                                options={branchoffices} 
+                                className={classNames({ 'p-invalid': enviado && !empleado.branchoffice })}
+                                onChange={(e) => onInputChange(e)} 
+                                placeholder="¿En qué sucursal se desempeña?"
+                            />
+                        {enviado && !empleado.branchoffice && <small className="p-invalid">La sucursal es requerida.</small>}
+                        </div>
+                </div>
                         <div className='divider p-mt-3'></div>
                             <div className='center'>Datos de contacto</div>
                         <div className='divider p-mb-3'></div>
                     <div className='p-grid p-fluid'>
                         <div className="p-col-12 p-md-6 p-field">
                             <label htmlFor="localidad">Localidad</label>
-                            <InputText id="localidad" name="localidad" value={localidad} onChange={(e) => onInputChange(e)} required 
+                            <InputText id="localidad" name="localidad" value={empleado.localidad} onChange={(e) => onInputChange(e)} required 
                             className={classNames({ 'p-invalid': enviado && !empleado.localidad })} />
                             {enviado && !empleado.localidad && <small className="p-invalid">La localidad es requerida.</small>}
                         </div>

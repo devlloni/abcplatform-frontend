@@ -104,3 +104,7 @@
     align-items: center;
     justify-content: center;
 }
+
+.custom-scrollpanel .p-scrollpanel-wrapper{
+    border-top: solid 1px black;
+}

@@ -2,7 +2,8 @@ import {
     OBTENER_USUARIO,
     LOGIN_EXITOSO,
     LOGIN_ERROR,
-    CERRAR_SESION
+    CERRAR_SESION,
+    AUTH_ERROR
 } from './authTypes';
 import Swal from 'sweetalert2';
 
@@ -19,16 +20,21 @@ export default ( state, action ) => {
         case CERRAR_SESION:
         case LOGIN_ERROR:
             localStorage.removeItem('token');
-            // Swal.fire('Oops..',
-            // action.payload,
-            // 'error'
-            // );
             return{
                 ...state,
                 token: null,
                 usuario: null,
                 autenticado: null,
                 mensaje: action.payload,
+                cargando: false
+            }
+        case AUTH_ERROR: 
+            return{
+                ...state,
+                token: null,
+                usuario: null,
+                autenticado: null,
+                mensaje: null,
                 cargando: false
             }
         case OBTENER_USUARIO:

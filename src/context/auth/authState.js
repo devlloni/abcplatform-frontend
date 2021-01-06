@@ -9,7 +9,8 @@ import {
     LOGIN_ERROR,
     LOGIN_EXITOSO,
     OBTENER_USUARIO,
-    CERRAR_SESION
+    CERRAR_SESION,
+    AUTH_ERROR
 } from './authTypes';
 import Swal from 'sweetalert2';
 
@@ -41,19 +42,19 @@ const AuthState = props => {
             const alerta = {
                 // msg: error.response.data.msg
                 msg: 'Error al iniciar sesión'
-            }
+            } 
+            //Este deberíamos de cambiarlo por AUTH_ERROR, ya que no queremos enviar mensaje en autenticación, solo en logueo.
             dispatch({
-                type: LOGIN_ERROR,
-                payload: alerta
+                type: AUTH_ERROR
+                // payload: alerta
             })
         }
     }
     
     //Usuario inicia sesion
     const iniciarSesion = async datos => {
-
         const respuesta = await clienteAxios.post('/auth', datos);
-        if(respuesta.status === 200){
+        if(respuesta.data.token){
             dispatch({
                 type: LOGIN_EXITOSO,
                 payload: respuesta.data
@@ -61,12 +62,9 @@ const AuthState = props => {
             usuarioAutenticado();
         }
         else{
-            const alerta = {
-                msg: respuesta.data.msg
-            };
             dispatch({
                 type: LOGIN_ERROR,
-                payload: alerta.msg
+                payload: respuesta.data.msg
             });
         }
 

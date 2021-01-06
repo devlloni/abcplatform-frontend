@@ -17,9 +17,12 @@ import Calendario from './components/Routes/Calendario/Calendario';
     //Compañías
 // import Companies from './components/Routes/Companies/Companies';
 import Companie from './components/Routes/Companies/Companie';
-import NewCompanie from './components/Routes/Companies/NewCompanie';
+//*Sucursales
+import Sucursales from './components/Routes/Sucursales/Sucursales';
 //*Empleados
 import Empleados from './components/Routes/Empleados/Empleados';
+//*Sectores de trabajo
+import Sectores from './components/Routes/Sectores/Sectores';
 //*Auth
 import RutaPrivada from './components/Routes/RutaPrivada';
 import NotFound from './components/Routes/NotFound';
@@ -48,6 +51,8 @@ function App() {
             <RutaPrivada path='/calendario' exact component={Calendario} />
             <RutaPrivada path='/companies' exact component={Companie} adminRequired={4} />
             <RutaPrivada path='/empleados' exact component={Empleados} adminRequired={4}/>
+            <RutaPrivada path='/sucursales' exact component={Sucursales} adminRequired={4} />
+            <RutaPrivada path='/sectorestrabajo' exact component={Sectores} adminRequired={4} />
             <RutaPrivada component={NotFound} />
             {/* <RutaPrivadaAdmin path='/companies' exact adminRequired={4}  component={Companies} /> */}
           </Switch>
