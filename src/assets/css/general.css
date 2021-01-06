@@ -108,3 +108,11 @@
 .custom-scrollpanel .p-scrollpanel-wrapper{
     border-top: solid 1px black;
 }
+/*
+.datatable-filter-demo .card .p-datatable .p-datatable-header .p-datatable-wrapper table .p-datatable-thead tr:last-child th input{
+    background-color: #000; 
+} */
+
+.p-column-filter{
+    width: 100% !important;
+}

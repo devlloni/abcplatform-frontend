@@ -1,6 +1,7 @@
 import React, {Fragment, useState, useEffect, useRef} from 'react';
 import useWindowSize from '../../../hooks/useWindowSize';
 import clienteAxios from '../../../config/clienteAxios';
+import classNames from 'classnames';
 import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
@@ -10,7 +11,7 @@ import { Column } from 'primereact/column';
 import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Table } from '@fullcalendar/daygrid';
-
+import { InputTextarea } from 'primereact/inputtextarea';
 const Sectores = () => {
     document.title = "ABC | Sectores";
     const { width } = useWindowSize();
@@ -21,13 +22,14 @@ const Sectores = () => {
     const [ sector, setSector ] = useState({
         id: '',
         nombreSector: '',
-        idCompania: ''
+        idCompania: '',
+        comentarios: ''
     });
     const [ globalFilter, setGlobalFilter ] = useState('');
     const [ companias, setCompanias ] = useState(null);
     const [ selectedSector, setSelectedSector ] = useState(null);
 
-    const { nombreSector, idCompania } = sector;
+    const { nombreSector, idCompania, comentarios } = sector;
 
     const getSectores = async () => {
         const resp = await clienteAxios.get('/companias/sectores');
@@ -54,13 +56,17 @@ const Sectores = () => {
         if(!sectores){
             getSectores();
         }
+        if(!companias){
+            getCompanies();
+        }
     }, []);
 
     const reiniciarSector = () => {
         setSector({
             id: null,
             idCompania: '',
-            nombreSector: ''
+            nombreSector: '',
+            comentarios: ''
         });
         return;
     }
@@ -119,14 +125,13 @@ const Sectores = () => {
         setSectorDialog(true);
     }
 
-    const dialogSectorFooter = () => {
-        return(
+    const dialogSectorFooter = (
                 <React.Fragment>
                     <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={()=> hideDialog()} />
                     <Button label="Guardar" icon="pi pi-check" className="p-button-text" onClick={()=> submitNewSector()} />
                 </React.Fragment>
         );
-    }
+    
 
     const TableHeader = (
         <div className="table-header">
@@ -147,11 +152,15 @@ const Sectores = () => {
         );
     }
 
+    const headerDialog = (
+        <div className='center'>Detalles del sector</div>
+    );
+
     const idBodyTemplate = rowData => {
         let comp;
         if(companias){
             companias.forEach( companie => {
-                if(companie.value === rowData.compania){
+                if(companie.value === rowData.idCompania){
                     comp = companie.label;
                 }
                 else{
@@ -215,25 +224,79 @@ const Sectores = () => {
                         </div>
                 </div>
                 {sectores ? (
-                    <DataTable
-                        value={sectores}
-                        className='p-datatable-responsive-demo'
-                        paginator rows={4}
-                        header={TableHeader}
-                        globalFilter={globalFilter}
-                    >
-                        <Column field="nombreSector" header="Nombre" body={nombreBodyTemplate} 
-                            filter={true} filterPlaceholder={'Buscar por nombre de sector'}
-                        />
-                        <Column field='idCompanie' header='Companía asociada' body={idBodyTemplate}
-                            filter={true} filterPlaceholder='Buscar por Companía.'
-                        />
-                    </DataTable>
+                    <div className='datatable-filter-demo'>
+                        <div className='card'>
+                        <DataTable
+                            value={sectores}
+                            className='p-datatable-responsive-demo'
+                            paginator rows={4}
+                            header={TableHeader}
+                            globalFilter={globalFilter}
+                        >
+                            <Column field="nombreSector" header="Nombre" body={nombreBodyTemplate} 
+                                filter={true} filterPlaceholder={'Buscar por nombre de sector'}
+                            />
+                            <Column field='idCompanie' header='Companía asociada' body={idBodyTemplate}
+                                filter={true} filterPlaceholder='Buscar por Companía.'
+                            />
+                        </DataTable>
+                        </div>
+                    </div>
                 ):
                 (<div className='center p-mt-6 p-mb-6'>
                     <ProgressSpinner />
                 </div>)
                 }
+                {/* ---- DIALOGS ----  */}
+                <Dialog
+                    visible={sectorDialog}
+                    style={ width < 993 ? {width: '450px'} : {width: '750px'}}
+                    header={headerDialog}
+                    modal className='p-fluid'
+                    footer={dialogSectorFooter}
+                    onHide={()=>hideDialog()}
+                >
+                    <div className='p-grid p-fluid'>
+                        <div className='p-col-12'>
+                            <Dropdown 
+                                value={idCompania} 
+                                name="idCompania"
+                                id="idCompania"
+                                options={companias} 
+                                className={classNames({ 'p-invalid': enviado && !sector.idCompania })}
+                                onChange={(e) => onInputChange(e)} 
+                                placeholder="¿A qué compañía está asociado?"
+                            />
+                            {enviado && !sector.idCompania && <small className="p-invalid">La compañía asociada es obligatoria.</small>}
+                        </div>
+                    </div>
+                    <div className='p-grid p-fluid'>
+                        <div className='p-col-12'>
+                            <InputText 
+                                value={nombreSector}
+                                name='nombreSector'
+                                id='nombreSector'
+                                className={classNames({ 'p-invalid': enviado && !sector.nombreSector })}
+                                onChange={(e)=> onInputChange(e)}
+                                placeholder="Nombre del sector"
+                            />
+                            {enviado && !sector.nombreSector && <small className="p-invalid">El nombre del sector es obligatorio.</small>}
+                        </div>
+                    </div>
+                    <div className='p-grid p-fluid'>
+                        <div className='p-col-12'>
+                            <InputTextarea 
+                                style={{maxWidth: '100%'}}
+                                style={{height: '110%'}}
+                                value={comentarios}
+                                id='comentarios'
+                                id='comentarios'
+                                onChange={(e)=> onInputChange(e)}
+                                placeholder='Comentarios del sector'
+                            />
+                        </div>
+                    </div>
+                </Dialog>
             </div>
         </div>
      );
