@@ -49,17 +49,20 @@ const Empleados = () => {
         fechaIngreso: '',
         branchoffice: '',
         profesion: '',
-        userRole: ''
+        userRole: '',
+        nroLegajo: ''
     });
     const [ companias, setCompanias ] = useState([]);
     const [ branchoffices, setBranchoffices ] = useState(null);
+    const [ lugares, setLugares ] = useState(null);
+    const [ sectores, setSectores ] = useState(null);
     const [ deleteDialog, setDeleteDialog ] = useState(false);
     const [ selectedEmpleado, setSelectedEmpleado ] = useState(false);
     const [ confirmApellido, setConfirmApellido ] = useState('');
     const [ puedeBorrar, setPuedeBorrar ] = useState(false);
     const [ showPass, setShowPass ] = useState(false);
     const { email, nombre, apellido, password, administrador, compania,
-         direccion, localidad, provincia, cuil, telefonoContacto, fechaIngreso } = empleado;
+         direccion, localidad, provincia, cuil, telefonoContacto, fechaIngreso, nroLegajo } = empleado;
 
     const getEmpleados = async () => {
         const resp = await clienteAxios.get('/usuarios/empleados');
@@ -89,7 +92,6 @@ const Empleados = () => {
         const resp = await clienteAxios.get('/branchoffices');
         let respuesta = resp.data;
         if(compania){
-            console.log('hay compania');
             let arr = [];
             respuesta.map( item=> {
                 if(item.compania == compania){
@@ -110,7 +112,8 @@ const Empleados = () => {
 
     useEffect( ()=>{
         if(compania){
-            getBranchoffices()
+            getBranchoffices();
+            getCompanieData(compania);
         }
     }, [compania])
 
@@ -148,7 +151,8 @@ const Empleados = () => {
             fechaIngreso: '',
             branchoffice: '',
             profesion: '',
-            userRole: ''
+            userRole: '',
+            nroLegajo: ''
         });
     }
 
@@ -171,7 +175,8 @@ const Empleados = () => {
 
     const submitNewEmpleado = async () => {
         setEnviado(true);
-        if( !email  || email.length === 0 ||
+        if( 
+            // !email  || email.length === 0 ||
             !nombre || nombre.length === 0 || 
             !apellido || apellido.length === 0 ||
             // !password || password.length === 0 ||
@@ -179,8 +184,8 @@ const Empleados = () => {
             // !direccion || direccion.length === 0 ||
             !localidad || localidad.length === 0  ||
             !provincia || provincia.length === 0  ||
-            !cuil || cuil.length === 0  ||
-            !telefonoContacto || telefonoContacto.length === 0  
+            !cuil || cuil.length === 0  
+            // !telefonoContacto || telefonoContacto.length === 0  
             ){
                 return showToast('error', '¡Error!', '¡Completa todos los campos!'); 
             }
@@ -216,6 +221,7 @@ const Empleados = () => {
             if(respuesta.status === 200){
                 getEmpleados();
                 setDeleteDialog(false);
+                setConfirmApellido('');
                 showToast('success', 'Success message', `${selectedEmpleado.nombre} ${selectedEmpleado.apellido} fué eliminado satisfactoriamente. (${selectedEmpleado._id})`)
                 return setSelectedEmpleado(null);
             }else{
@@ -244,6 +250,26 @@ const Empleados = () => {
         }
         else{
             return setPuedeBorrar(false);
+        }
+    }
+
+    const getCompanieData = async ( companyId ) => {
+        const resp = await clienteAxios.post('/companias/getData', {companyId: companyId});
+        if(resp.status === 200 && resp.data.msg === 'ok'){
+            let respuestaSector = resp.data.sectores;
+            let arrSector = [];
+            respuestaSector.map( item=> {   
+                    arrSector.push({label: item.nombreSector, value: item._id});
+            });
+            //
+            let respuestaLugar = resp.data.lugares;
+            let arrLugar = [];
+            respuestaLugar.map( item => {
+                arrLugar.push({label: item.nombreLugar, value: item._id});
+            });
+            //
+            setLugares(arrLugar);
+            setSectores(arrSector);
         }
     }
 
@@ -509,7 +535,7 @@ const Empleados = () => {
                         <label htmlFor="email">E-Mail</label>
                         <InputText id="email" type="email" name="email" value={empleado.email} onChange={(e) => onInputChange(e)} required 
                         className={classNames({ 'p-invalid': enviado && !empleado.email })} />
-                        {enviado && !empleado.email && <small className="p-invalid">El email es requerido.</small>}
+                        {/* {enviado && !empleado.email && <small className="p-invalid">El email es requerido.</small>} */}
                     </div>
                     <div className="p-col-12 p-md-6 p-field">
                         <label htmlFor="password">Contraseña</label>
@@ -521,24 +547,36 @@ const Empleados = () => {
                         type={empleado._id ? 'password' : 'text'}
                         id="password" name="password" value={empleado.password} onChange={(e) => onInputChange(e)} 
                         required className={classNames({ 'p-invalid': enviado && !empleado.password })} />
-                        {enviado && !empleado.password && <small className="p-invalid">La contraseña es requerida.</small>}
+                        {/* {enviado && !empleado.password && <small className="p-invalid">La contraseña es requerida.</small>} */}
                         </div>
                 </div>
                 <div className='p-grid p-fluid'>
                     <div className="p-col-12 p-md-6 p-field">
                         <label htmlFor="lugar">Lugar</label>
-                        <InputText id="lugar" type="text" name="lugar" value={empleado.lugar} onChange={(e) => onInputChange(e)} required 
-                        className={classNames({ 'p-invalid': enviado && !empleado.lugar })} />
+                        <Dropdown 
+                            value={empleado.lugar}
+                            name="lugar"
+                            id="lugar"
+                            options={lugares}
+                            disabled={compania ? false : true}
+                            className={classNames({ 'p-invalid': enviado && !empleado.lugar })}
+                            onChange={(e) => onInputChange(e)} 
+                            placeholder="¿En qué lugar se desempeña?"
+                        />
                         {enviado && !empleado.lugar && <small className="p-invalid">El lugar es requerido.</small>}
                     </div>
                     <div className="p-col-12 p-md-6 p-field">
-                        <label htmlFor="password">Sector</label>
-                        <InputText tooltipOptions={{
-                            position: 'bottom'
-                        }}
-                        type='text'
-                        id="sector" name="sector" value={empleado.sector} onChange={(e) => onInputChange(e)} 
-                        required className={classNames({ 'p-invalid': enviado && !empleado.sector })} />
+                        <label htmlFor="sector">Sector</label>
+                        <Dropdown 
+                            disabled={compania ? false : true}
+                            options={sectores}
+                            value={empleado.sector}
+                            name="sector"
+                            id="sector"
+                            onChange={(e)=> onInputChange(e)}
+                            className={classNames({ 'p-invalid': enviado && !empleado.sector })}
+                            placeholder="¿En qué sector se desempeña?"
+                        />
                         {enviado && !empleado.sector && <small className="p-invalid">El sector es requerido.</small>}
                     </div>
                 </div>
@@ -564,6 +602,19 @@ const Empleados = () => {
                             />
                         {enviado && !empleado.branchoffice && <small className="p-invalid">La sucursal es requerida.</small>}
                         </div>
+                </div>
+                <div className='p-grid p-fluid'>
+                    <div className='p-col-12 p-field'>
+                    <label htmlFor="nroLegajo">Ingrese el número de legajo.</label>
+                        <InputText 
+                            value={nroLegajo}
+                            name="nroLegajo"
+                            id="nroLegajo"
+                            className={classNames({ 'p-invalid': enviado && !empleado.branchoffice })}
+                            onChange={(e) => onInputChange(e)}
+                        />
+                        {/* {enviado && !nroLegajo && <small className="p-invalid">El Nro. de legajo es requerido.</small>} */}
+                    </div>
                 </div>
                         <div className='divider p-mt-3'></div>
                             <div className='center'>Datos de contacto</div>
@@ -594,7 +645,7 @@ const Empleados = () => {
                             <label htmlFor="telefonoContacto">Teléfono</label>
                             <InputText id="telefonoContacto" name="telefonoContacto" value={empleado.telefonoContacto} onChange={(e) => onInputChange(e)} 
                             required className={classNames({ 'p-invalid': enviado && !empleado.telefonoContacto })} />
-                            {enviado && !empleado.telefonoContacto && <small className="p-invalid">El telefono es requerido.</small>}
+                            {/* {enviado && !empleado.telefonoContacto && <small className="p-invalid">El telefono es requerido.</small>} */}
                         </div>
                     </div>
             </Dialog>

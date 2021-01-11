@@ -342,7 +342,7 @@ const Companie = () => {
             margin: '0.8em'
         }}>
                 <Toast ref={myToast} />
-                <h3 className='center'>Companías</h3>
+                <h3 className='center'>Compañías</h3>
                 <div className="card">
                     <div className="p-grid p-fluid" style={{
                                 marginTop: '1em',
