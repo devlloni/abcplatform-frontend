@@ -23,6 +23,10 @@ import Sucursales from './components/Routes/Sucursales/Sucursales';
 import Empleados from './components/Routes/Empleados/Empleados';
 //*Sectores de trabajo
 import Sectores from './components/Routes/Sectores/Sectores';
+//*Lugares de trabajo
+import Lugares from './components/Routes/Lugares/Lugares';
+//*Puestos de trabajo
+import Puestos from './components/Routes/Puestos/Puestos';
 //*Auth
 import RutaPrivada from './components/Routes/RutaPrivada';
 import NotFound from './components/Routes/NotFound';
@@ -52,7 +56,9 @@ function App() {
             <RutaPrivada path='/companies' exact component={Companie} adminRequired={4} />
             <RutaPrivada path='/empleados' exact component={Empleados} adminRequired={4}/>
             <RutaPrivada path='/sucursales' exact component={Sucursales} adminRequired={4} />
-            <RutaPrivada path='/sectorestrabajo' exact component={Sectores} adminRequired={4} />
+            <RutaPrivada path='/sectorestrabajo' exact component={Sectores} adminRequired={4} /> {/* ABC-14 */}
+            <RutaPrivada path='/lugarestrabajo' exact component={Lugares} adminRequired={4} />
+            <RutaPrivada path='/puestostrabajo' exact component={Puestos} adminRequired={4} />
             <RutaPrivada component={NotFound} />
             {/* <RutaPrivadaAdmin path='/companies' exact adminRequired={4}  component={Companies} /> */}
           </Switch>

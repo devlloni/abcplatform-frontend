@@ -1,4 +1,5 @@
 import React, {Fragment, useState, useEffect, useRef} from 'react';
+import Swal from 'sweetalert2';
 import useWindowSize from '../../../hooks/useWindowSize';
 import clienteAxios from '../../../config/clienteAxios';
 import classNames from 'classnames';
@@ -12,30 +13,29 @@ import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Table } from '@fullcalendar/daygrid';
 import { InputTextarea } from 'primereact/inputtextarea';
-const Sectores = () => {
-    document.title = "ABC | Sectores";
+const Puestos = () => {
+    document.title = "ABC | Lugares";
     const { width } = useWindowSize();
 
-    const [ sectores, setSectores ] = useState(null);
-    const [ sectorDialog, setSectorDialog ] = useState(false);
+    const [ puestos, setPuestos ] = useState(null);
+    const [ puestoDialog, setPuestoDialog ] = useState(false);
     const [ yaExiste, setYaExiste ] = useState(false);
     const [ enviado, setEnviado ] = useState(false);
-    const [ sector, setSector ] = useState({
+    const [ puesto, setPuesto ] = useState({
         id: '',
-        nombreSector: '',
+        nombrePuesto: '',
         idCompania: '',
         nombreCompania: '',
         comentarios: ''
     });
     const [ globalFilter, setGlobalFilter ] = useState('');
     const [ companias, setCompanias ] = useState(null);
-    const [ selectedSector, setSelectedSector ] = useState(null);
 
-    const { nombreSector, idCompania, comentarios } = sector;
+    const { nombrePuesto, idCompania, comentarios } = puesto;
 
-    const getSectores = async () => {
-        const resp = await clienteAxios.get('/companias/sectores');
-        setSectores(resp.data.sectores);
+    const getPuestos = async () => {
+        const resp = await clienteAxios.get('/companias/puestos');
+        setPuestos(resp.data.puestos);
         return;
     }
 
@@ -55,89 +55,123 @@ const Sectores = () => {
     }
 
     useEffect( ()=>{
-        if(!sectores){
-            getSectores();
+        if(!puestos){
+            getPuestos();
         }
         if(!companias){
             getCompanies();
         }
     }, []);
 
-    const reiniciarSector = () => {
-        setSector({
+    const reiniciarPuesto = () => {
+        setPuesto({
             id: null,
             idCompania: '',
             nombreCompania: '',
-            nombreSector: '',
+            nombrePuesto: '',
             comentarios: ''
         });
         return;
     }
 
-    const showSectorDialog = e => {
-        setSectorDialog(true);
+    const showPuestoDialog = e => {  
+        setPuestoDialog(true);
     }
 
-    const submitEditSector = async (sector) => {
-        const resp = await clienteAxios.post('/companias/sectores/edit', sector);
+    const submitDeletePuesto = async ( id ) => {
+        const resp = await clienteAxios.post('/companias/puestos/delete', {id});
+        if(resp.status === 200){
+            getPuestos();
+            return showToast('success', '¡Perfecto!', '¡El puesto fué eliminado con éxito!');
+        }else{
+            return showToast('error', '¡Error!', '¡Ocurrió un error inesperado! Por favor, inténtalo más tarde.');
+        }
+    }
+
+    const handleDeletePuesto = (rawData) => {
+        Swal.fire({
+            title: `¿Estás seguro de eliminar el puesto "${rawData.nombrePuesto}"?`,
+            text: 'No podrás volver atrás.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, borrarlo.',
+            cancelButtonText: 'No, cancelar.'
+          }).then((result) => {
+            if (result.value) {
+              //! HANDLE DELETE,
+              submitDeletePuesto(rawData._id);
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+              Swal.fire(
+                'Cancelado',
+                'El lugar sigue conservándose en la base de datos.',
+                'warn'
+              )
+            }
+          })
+    }
+
+    const submitEditPuesto = async (puesto) => {
+        const resp = await clienteAxios.post('/companias/puestos/edit', puesto);
         if(resp.status === 200 && resp.data.msg === 'ok'){
-            let msg = `¡El sector [ "${sector.nombreSector}" ] fué actualizado correctamente.`;
-            getSectores();
-            setSectorDialog(false);
-            reiniciarSector();
+            let msg = `¡El puesto [ "${puesto.nombrePuesto}" ] fué actualizado correctamente.`;
+            getPuestos();
+            setPuestoDialog(false);
+            reiniciarPuesto();
+            setYaExiste(false);
             return showToast('success', '¡Exito!', msg);
         }
         if(resp.status === 200 && resp.data.msg === 'exists'){
             setYaExiste(true);
-            let msg = `¡El sector [ "${sector.nombreSector}" ] ya existe! Intente con otro nombre.`;
+            let msg = `¡El puesto [ "${puesto.nombrePuesto}" ] ya existe! Intente con otro nombre.`;
             return showToast('warn', '¡Atención!', msg);
         }
     }
 
-    const submitNewSector = async () => {
+    const submitNewPuesto = async () => {
         setEnviado(true);
         if(!idCompania || idCompania.length === 0 ||
-           !nombreSector || nombreSector.length === 0    
+           !nombrePuesto || nombrePuesto.length === 0    
         ){
             return showToast('error', '¡Error!', '¡Completa todos los campos e intentelo de nuevo!');
         }
-        if(sector._id){
-            return submitEditSector(sector);
+        if(puesto._id){
+            return submitEditPuesto(puesto);
         }
         else{
             
-                const respuesta = await clienteAxios.post('/companias/sectores', sector);
+                const respuesta = await clienteAxios.post('/companias/puestos', puesto);
                 if(respuesta.status === 200 && respuesta.data.msg === 'ok'){
-                    getSectores();
+                    getPuestos();
                     setEnviado(false);
-                    setSectorDialog(false);
-                    reiniciarSector();
-                    return showToast('success', '¡Sector cargado con éxito!', 'El sector fué cargado correctamente en la base de datos.');
+                    setPuestoDialog(false);
+                    reiniciarPuesto();
+                    setYaExiste(false);
+                    return showToast('success', '¡Puesto cargado con éxito!', 'El puesto fué cargado correctamente en la base de datos.');
                 }
                 else if(respuesta.status === 200 && respuesta.data.msg === 'exists'){
                     setYaExiste(true);
-                    let msg = `¡El sector [ "${sector.nombreSector}" ] ya existe! Intente con otro nombre.`;
+                    let msg = `¡El puesto [ "${puesto.nombrePuesto}" ] ya existe! Intente con otro nombre.`;
                     return showToast('warn', '¡Atención!', msg);
                 }
                 else{
                     setYaExiste(false);
                     return showToast('error', '¡Error!', 'Lo sentimos, ocurrió un error inesperrado en el sistema, inténtelo más tarde.');
                 }
-                
         }
     }
 
     const hideDialog = e => {
-        setSectorDialog(false);
+        setPuestoDialog(false);
         setEnviado(false);
-        reiniciarSector();
+        reiniciarPuesto();
     }
 
     const onInputChange = e => {
-        setSector({
-            ...sector,
+        setPuesto({
+            ...puesto,
             [e.target.name] : e.target.value
         });
+
         if(e.target.name === 'idCompania'){
             //!
             let comp;
@@ -145,8 +179,8 @@ const Sectores = () => {
                 companias.forEach( companie => {
                     if(companie.value === e.target.value){
                         comp = companie.label;
-                        setSector({
-                            ...sector,
+                        setPuesto({
+                            ...puesto,
                             nombreCompania: comp,
                             [e.target.name] : e.target.value
                         });
@@ -154,28 +188,27 @@ const Sectores = () => {
                 });
             }
         }
-        if(e.target.name === 'nombreSector'){
+        if(e.target.name === 'nombrePuesto'){
             setYaExiste(false);
         }
     }
 
-    const editSector = sector => {
-        console.log(sector);
-        setSector(sector);
-        setSectorDialog(true);
+    const EditPuesto = puesto => {
+        setPuesto(puesto);
+        setPuestoDialog(true);
     }
 
-    const dialogSectorFooter = (
+    const dialogPuestoFooter = (
                 <div>
                     <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={()=> hideDialog()} />
-                    <Button label="Guardar" icon="pi pi-check" className="p-button-text" onClick={()=> submitNewSector()} />
+                    <Button label="Guardar" icon="pi pi-check" className="p-button-text" onClick={()=> submitNewPuesto()} />
                 </div>
         );
     
 
     const TableHeader = (
         <div className="table-header">
-                Lista de sectores
+                Lista de Puestos
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Filtros globales" />
@@ -186,28 +219,17 @@ const Sectores = () => {
     const actionBody = (rawData) => {
         return(
             <div className='p-text-center'>
-                <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => editSector(rawData)} />
-                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={(e) => e.preventDefault()} />
+                <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => EditPuesto(rawData)} />
+                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => handleDeletePuesto(rawData)} />
             </div>
         );
     }
 
     const headerDialog = (
-        <div className='center'>Detalles del sector</div>
+        <div className='center'>Detalles del puesto</div>
     );
 
     const idBodyTemplate = rowData => {
-        // let comp;
-        // if(companias){
-        //     companias.forEach( companie => {
-        //         if(companie.value === rowData.idCompania){
-        //             comp = companie.label;
-        //         }
-        //         else{
-        //             return;
-        //         }
-        //     });
-        // }
         return(
             <Fragment>
                 <span className='p-column-title'></span>
@@ -221,7 +243,7 @@ const Sectores = () => {
         return(
             <Fragment>
                 <span className='p-column-title'></span>
-                {rawData.nombreSector}
+                {rawData.nombrePuesto}
             </Fragment>
         )
     }
@@ -230,7 +252,7 @@ const Sectores = () => {
         <div className="datatable-crud-demo"style={
             {paddingBottom: '50px',marginTop: '0.8em', marginLeft: '0.8em', marginRight: '0.8em'}
         }>
-            <h5 className='center'>Sectores de trabajo</h5>
+            <h5 className='center'>Puestos de trabajo</h5>
             <Toast ref={myToast} />
             <div className='card'>
                 <div className="p-grid p-fluid" style={{
@@ -242,7 +264,7 @@ const Sectores = () => {
                         label="Nuevo" 
                         icon={ width < 320 ? '' : "pi pi-plus" }
                         className="p-button-success p-mr-2" 
-                        onClick={(e)=> showSectorDialog()} 
+                        onClick={(e)=> showPuestoDialog()} 
                         />
                     </div>
                     <div className='p-col-3'>
@@ -263,18 +285,18 @@ const Sectores = () => {
                             />
                         </div>
                 </div>
-                {sectores ? (
+                {puestos ? (
                     <div className='datatable-filter-demo'>
                         <div className='card'>
                         <DataTable
-                            value={sectores}
+                            value={puestos}
                             className='p-datatable-responsive-demo'
                             paginator rows={4}
                             header={TableHeader}
                             globalFilter={globalFilter}
                         >
-                            <Column field="nombreSector" header="Nombre" body={nombreBodyTemplate} 
-                                filter={true} filterPlaceholder={'Buscar por nombre de sector'}
+                            <Column field="nombrePuesto" header="Nombre" body={nombreBodyTemplate} 
+                                filter={true} filterPlaceholder={'Buscar por nombre de lugar'}
                             />
                             <Column field='nombreCompania' header='Companía asociada' body={idBodyTemplate}
                                 filter={true} filterPlaceholder='Buscar por Companía.'
@@ -290,11 +312,11 @@ const Sectores = () => {
                 }
                 {/* ---- DIALOGS ----  */}
                 <Dialog
-                    visible={sectorDialog}
+                    visible={puestoDialog}
                     style={ width < 993 ? {width: '450px'} : {width: '750px'}}
                     header={headerDialog}
                     modal className='p-fluid'
-                    footer={dialogSectorFooter}
+                    footer={dialogPuestoFooter}
                     onHide={()=>hideDialog()}
                 >
                     <div className='p-grid p-fluid'>
@@ -304,24 +326,24 @@ const Sectores = () => {
                                 name="idCompania"
                                 id="idCompania"
                                 options={companias} 
-                                className={classNames({ 'p-invalid': enviado && !sector.idCompania })}
+                                className={classNames({ 'p-invalid': enviado && !puesto.idCompania })}
                                 onChange={(e) => onInputChange(e)} 
                                 placeholder="¿A qué compañía está asociado?"
                             />
-                            {enviado && !sector.idCompania && <small className="p-invalid">La compañía asociada es obligatoria.</small>}
+                            {enviado && !puesto.idCompania && <small className="p-invalid">La compañía asociada es obligatoria.</small>}
                         </div>
                     </div>
                     <div className='p-grid p-fluid'>
                         <div className='p-col-12'>
                             <InputText 
-                                value={nombreSector}
-                                name='nombreSector'
-                                id='nombreSector'
-                                className={classNames({ 'p-invalid': enviado && (!sector.nombreSector || yaExiste) })}
+                                value={nombrePuesto}
+                                name='nombrePuesto'
+                                id='nombrePuesto'
+                                className={classNames({ 'p-invalid': enviado && (!puesto.nombrePuesto || yaExiste) })}
                                 onChange={(e)=> onInputChange(e)}
-                                placeholder="Nombre del sector"
+                                placeholder="Nombre del puesto"
                             />
-                            {enviado && !sector.nombreSector && <small className="p-invalid">El nombre del sector es obligatorio.</small>}
+                            {enviado && !puesto.nombrePuesto && <small className="p-invalid">El nombre del puesto es obligatorio.</small>}
                             {enviado && yaExiste ? ( <small> EL nombre ingresado ya existe. Intente con otro. </small> ) : null}
                         </div>
                     </div>
@@ -333,7 +355,7 @@ const Sectores = () => {
                                 name='comentarios'
                                 id='comentarios'
                                 onChange={(e)=> onInputChange(e)}
-                                placeholder='Comentarios del sector'
+                                placeholder='Comentarios del lugar'
                             />
                         </div>
                     </div>
@@ -343,4 +365,4 @@ const Sectores = () => {
      );
 }
  
-export default Sectores;
+export default Puestos;
