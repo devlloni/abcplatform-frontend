@@ -333,7 +333,26 @@ const Appbar = (props) => {
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/capacitaciones'><i className="fas fa-book-open"></i>Capacitaciones</Link></li>
               </ScrollPanel>
             {/* ITEMS WITH ADMIN CONDITIONS */}
-            { userLogueado ? (<ScrollPanel className='custom-scrollpanel' ><ItemListAdmin /></ScrollPanel>) : null }
+            { userLogueado ? (
+            <ScrollPanel className='custom-scrollpanel' >
+
+            {/* <li className="">
+                <ul className="collapsible collapsible-accordion">
+                  <li>
+                    <a className="collapsible-header"><i className='fas fa-database'></i>Bases de datos <i className="material-icons">arrow_drop_down</i></a>
+                    
+                    <div className="collapsible-body nav-accordion-body">
+                      <ul>
+                          <ItemListAdmin />
+                      </ul>
+                    </div>
+                  </li>
+                </ul>
+            </li> */}
+            <ItemListAdmin />
+
+            </ScrollPanel>
+            ) : null }
             
         </ul>
       </div>

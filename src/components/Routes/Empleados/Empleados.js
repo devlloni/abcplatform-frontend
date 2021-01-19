@@ -80,6 +80,7 @@ const Empleados = () => {
 
     const getCompanies = async () => {
         const resp = await clienteAxios.get('/companias');
+        console.log(resp);
         let companieResp = resp.data;
         let arr = [];
         for(let i = 0; i < companieResp.length; i++){
