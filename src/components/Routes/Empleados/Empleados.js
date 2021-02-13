@@ -560,11 +560,11 @@ const Empleados = () => {
                             id="lugar"
                             options={lugares}
                             disabled={compania ? false : true}
-                            className={classNames({ 'p-invalid': enviado && !empleado.lugar })}
+                            // className={classNames({ 'p-invalid': enviado && !empleado.lugar })}
                             onChange={(e) => onInputChange(e)} 
                             placeholder="¿En qué lugar se desempeña?"
                         />
-                        {enviado && !empleado.lugar && <small className="p-invalid">El lugar es requerido.</small>}
+                        {/* {enviado && !empleado.lugar && <small className="p-invalid">El lugar es requerido.</small>} */}
                     </div>
                     <div className="p-col-12 p-md-6 p-field">
                         <label htmlFor="sector">Sector</label>
@@ -575,10 +575,10 @@ const Empleados = () => {
                             name="sector"
                             id="sector"
                             onChange={(e)=> onInputChange(e)}
-                            className={classNames({ 'p-invalid': enviado && !empleado.sector })}
+                            // className={classNames({ 'p-invalid': enviado && !empleado.sector })}
                             placeholder="¿En qué sector se desempeña?"
                         />
-                        {enviado && !empleado.sector && <small className="p-invalid">El sector es requerido.</small>}
+                        {/* {enviado && !empleado.sector && <ll className="p-invalid">El sector es requerido.</small>} */}
                     </div>
                 </div>
                 <div className='p-grid p-fluid'>
@@ -611,7 +611,7 @@ const Empleados = () => {
                             value={nroLegajo}
                             name="nroLegajo"
                             id="nroLegajo"
-                            className={classNames({ 'p-invalid': enviado && !empleado.branchoffice })}
+                            // className={classNames({ 'p-invalid': enviado && !empleado.branchoffice })}
                             onChange={(e) => onInputChange(e)}
                         />
                         {/* {enviado && !nroLegajo && <small className="p-invalid">El Nro. de legajo es requerido.</small>} */}
@@ -645,7 +645,9 @@ const Empleados = () => {
                         <div className="p-col-12 p-md-6 p-field">
                             <label htmlFor="telefonoContacto">Teléfono</label>
                             <InputText id="telefonoContacto" name="telefonoContacto" value={empleado.telefonoContacto} onChange={(e) => onInputChange(e)} 
-                            required className={classNames({ 'p-invalid': enviado && !empleado.telefonoContacto })} />
+                            required 
+                            // className={classNames({ 'p-invalid': enviado && !empleado.telefonoContacto })} 
+                            />
                             {/* {enviado && !empleado.telefonoContacto && <small className="p-invalid">El telefono es requerido.</small>} */}
                         </div>
                     </div>

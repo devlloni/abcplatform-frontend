@@ -110,9 +110,6 @@ const Appbar = (props) => {
             </div>
             {/* <a href="#" data-target="mobile-demo" className="sidenav-trigger"><i className="material-icons">menu</i></a> */}
             <ul id="nav-mobile" className="right hide-on-med-and-down">
-                    {/* <li><Link to='/calendario' >Calendario</Link></li>
-                    <li><Link to='/vencimientos'>Vencimientos</Link></li>
-                    <li><Link to='/cuenta'>Cuenta</Link></li> */}
                 <li><a onClick={(e)=> clickSearch(e)} href="!#"><i className="material-icons">search</i></a></li>
                 <li><a href="!#" onClick={(e)=>handleCerrarSesion(e)}> 
                       <i className='fas fa-sign-out-alt' style={{fontSize: '1em'}}></i> Cerrar sesión</a>
@@ -212,66 +209,91 @@ const Appbar = (props) => {
       })
       //!end
     }
+
+    const ItemListIncidentes = () => {
+      let elements = [ ];
+      elements.push(<li key={CriptoRandomString({length: 10, type: 'numeric'})}></li>)
+      if(userLogueado){
+        if(userLogueado.administrador >= 3){
+          elements.push([
+            <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/persona'>
+                <i className='fas fa-user-injured'></i>
+                Incidentes Persona
+              </Link>
+            </li>
+          ]);
+          elements.push([
+            <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes/propiedad'>
+                <i className='fas fa-house-damage'></i>
+                Incidentes Propiedad
+              </Link>
+            </li>
+          ]);
+          elements.push([
+            <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes/ambiente'>
+                <i className='fab fa-envira'></i>
+                Incidentes Ambiente
+              </Link>
+            </li>
+          ]);
+        }
+      }
+      return( userLogueado ? elements : <li>Cargando...</li> )
+    }
     
     const ItemListAdmin = () => {
       let elements = []
       elements.push(<li key={CriptoRandomString({length: 8, type: 'numeric'})}></li>)
-      //Administrador nivel 1.
-      //Administrador nivel 2.
-      //Administrador nivel 3.
-      //Administrador nivel 4.
-      if(userLogueado.administrador >= 4){
-        elements.push ([
-          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
-            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/empleados'>
-              <i className='fas fa-users'></i>
-              Empleados
+      if(userLogueado){
+        if(userLogueado.administrador >= 4){
+          elements.push ([
+            <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/empleados'>
+                <i className='fas fa-users'></i>
+                Empleados
+              </Link>
+            </li>,
+            <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/companies'>
+                <i className="fas fa-building"></i>
+                Compañías
+              </Link>
+            </li>,
+            <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/sucursales'>
+                <i className="fas fa-store-alt"></i>
+                Sucursales
+              </Link>
+            </li>,
+            <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/sectorestrabajo'>
+              <i className="fas fa-vector-square"></i>
+              Sectores de Trabajo
             </Link>
-          </li>,
-          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
-            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/companies'>
-              <i className="fas fa-building"></i>
-              Compañías
+            </li>,
+            <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/lugarestrabajo'>
+              <i className="fas fa-map-pin"></i>
+              Lugares de Trabajo
             </Link>
-          </li>,
-          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
-            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/sucursales'>
-              <i className="fas fa-store-alt"></i>
-              Sucursales
+            </li>,
+            <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
+            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/puestostrabajo'>
+              <i className="fas fa-briefcase"></i>
+              Puestos de Trabajo
             </Link>
-          </li>,
-          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
-          <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/sectorestrabajo'>
-            <i className="fas fa-vector-square"></i>
-            Sectores de Trabajo
-          </Link>
-          </li>,
-          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
-          <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/lugarestrabajo'>
-            <i className="fas fa-map-pin"></i>
-            Lugares de Trabajo
-          </Link>
-          </li>,
-          <li key={CriptoRandomString({length: 8, type: 'numeric'})} className='sidenav-li'>
-          <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/puestostrabajo'>
-            <i className="fas fa-briefcase"></i>
-            Puestos de Trabajo
-          </Link>
-          </li>
-          ]
-        )
+            </li>
+            ]
+          )
+        }
+        return( userLogueado ? elements : <li>Cargando...</li> )
+      }else{
+        return (elements)
       }
-      //Administrador nivel 5.
-      // if(userLogueado.administrador >= 5){
-      //   elements.push(
-          
-      //   )
-      // }
-      //Administrador nivel 6.
-      //Administrador nivel 7.
-      //Administrador nivel 8.
-      //Administrador nivel 9.
-      return( elements )
+     
     }
 
     return ( 
@@ -308,7 +330,7 @@ const Appbar = (props) => {
                 <ul className="collapsible collapsible-accordion">
                   <li>
                     <hr></hr>
-                    <a className="collapsible-header">Mi cuenta <i className="material-icons">arrow_drop_down</i></a>
+                    <a className="collapsible-header"> <i className='fa fa-user'></i> Mi cuenta <i className="material-icons">arrow_drop_down</i></a>
                     
                     <div className="collapsible-body nav-accordion-body">
                       <ul>
@@ -323,37 +345,50 @@ const Appbar = (props) => {
                   </li>
                 </ul>
             </li>
-            
+            {/* //!asd */}
+            <li className="">
+              <ul className="collapsible collapsible-accordion">
+                <li>
+                  <hr></hr>
+                  <a className="collapsible-header"> <i className='fas fa-database'></i>Base de datos <i className="material-icons">arrow_drop_down</i></a>
+                  
+                  <div className="collapsible-body nav-accordion-body">
+                    <ul>
+                      <ScrollPanel>
+                        <ItemListAdmin />
+                      </ScrollPanel>
+                    </ul>
+                  </div>
+                </li>
+              </ul>
+          </li>
+          <li className="">
+              <ul className="collapsible collapsible-accordion">
+                <li>
+                  <hr></hr>
+                  <a className="collapsible-header"> <i className='fas fa-laptop-medical'></i>Incidentes <i className="material-icons">arrow_drop_down</i></a>
+                  
+                  <div className="collapsible-body nav-accordion-body">
+                    <ul>
+                      <ScrollPanel>
+                        <ItemListIncidentes />
+                      </ScrollPanel>
+                    </ul>
+                  </div>
+                </li>
+              </ul>
+          </li>
+            {/* //!asdf */}
               {/* MENU DE NAVEGACION */}
               <ScrollPanel className='custom-scrollpanel'>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/' > <i className='fas fa-home'></i> Inicio</Link></li>
+            {/* <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes' > <i className='fas fa-laptop-medical'></i> Incidentes </Link></li> */}
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/calendario' > <i className='fa fa-calendar-alt'></i> Calendario</Link></li>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/vencimientos'><i className="far fa-clipboard"></i>Vencimientos</Link></li>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/inspecciones'><i className="fas fa-clipboard-list"></i>Inspecciones</Link></li>
             <li className='sidenav-li'><Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/capacitaciones'><i className="fas fa-book-open"></i>Capacitaciones</Link></li>
               </ScrollPanel>
             {/* ITEMS WITH ADMIN CONDITIONS */}
-            { userLogueado ? (
-            <ScrollPanel className='custom-scrollpanel' >
-
-            {/* <li className="">
-                <ul className="collapsible collapsible-accordion">
-                  <li>
-                    <a className="collapsible-header"><i className='fas fa-database'></i>Bases de datos <i className="material-icons">arrow_drop_down</i></a>
-                    
-                    <div className="collapsible-body nav-accordion-body">
-                      <ul>
-                          <ItemListAdmin />
-                      </ul>
-                    </div>
-                  </li>
-                </ul>
-            </li> */}
-            <ItemListAdmin />
-
-            </ScrollPanel>
-            ) : null }
-            
         </ul>
       </div>
      );
