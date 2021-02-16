@@ -219,7 +219,7 @@ const Appbar = (props) => {
             <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
               <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/persona'>
                 <i className='fas fa-user-injured'></i>
-                Incidentes Persona
+                I. Persona
               </Link>
             </li>
           ]);
@@ -227,7 +227,7 @@ const Appbar = (props) => {
             <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
               <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes/propiedad'>
                 <i className='fas fa-house-damage'></i>
-                Incidentes Propiedad
+                II. Propiedad
               </Link>
             </li>
           ]);
@@ -235,7 +235,7 @@ const Appbar = (props) => {
             <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
               <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes/ambiente'>
                 <i className='fab fa-envira'></i>
-                Incidentes Ambiente
+                III. Ambiente
               </Link>
             </li>
           ]);
