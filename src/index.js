@@ -5,9 +5,11 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
-  <React.StrictMode>
+  <div>
+  {/* <React.StrictMode> */}
     <App />
-  </React.StrictMode>,
+  {/* </React.StrictMode>, */}
+  </div>,
   document.getElementById('root')
 );
 

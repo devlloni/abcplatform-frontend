@@ -1,12 +1,18 @@
 .hamburguer-sidenav:hover{
-    color: #CF921A;
+    color: #E91E63;
     transition: .3s ease;
 }
+
 
 .hamburguer-sidenav{
     color: white;
     transition: .3s ease;
+    /* padding: 0.1em; */
 }
+.hamburguer-sidenav .material-icons{
+    font-size: 2.5em !important;
+}
+
 .sidenav-li a .fa, .sidenav-li a .far, .sidenav-li a .fas{
     color: #E5C217;
 }
@@ -75,4 +81,38 @@
 }
 .nav-accordion-body{
     margin-left: 15%;
+}
+.datatable-crud-demo .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.datatable-crud-demo .product-image {
+    width: 100px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.datatable-crud-demo .p-dialog .product-image {
+    width: 150px;
+    margin: 0 auto 2rem auto;
+    display: block;
+}
+
+.datatable-crud-demo .confirmation-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-scrollpanel .p-scrollpanel-wrapper{
+    border-top: solid 1px black;
+}
+/*
+.datatable-filter-demo .card .p-datatable .p-datatable-header .p-datatable-wrapper table .p-datatable-thead tr:last-child th input{
+    background-color: #000; 
+} */
+
+.p-column-filter{
+    width: 100% !important;
 }

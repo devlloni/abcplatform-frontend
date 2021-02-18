@@ -1,40 +1,85 @@
-import React from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import Spinner from '../../Layout/Spinner';
+import { InputText } from 'primereact/inputtext';
+import { Tooltip } from 'primereact/tooltip';
+
 import './Login.css';
 import Wave from '../../../assets/img/wave.png';
 import bgImg from '../../../assets/img/bg_on_phone.svg';
 import avatarImg from '../../../assets/img/profile_pic.svg';
-const Login = () => {
-    // Initializer();
-    const [ submitLogin, setSubmitLogin ] = React.useState(false);
-    const [ data, setData ] = React.useState({
-        username: '',
+
+//!Auth
+import AuthContext from '../../../context/auth/authContext';
+import tokenAuth from '../../../config/tokenAuth';
+
+const token = localStorage.getItem('token');
+if(token){
+    tokenAuth(token);
+}
+
+const Login = (props) => {
+    //Get the context
+    const authContext = useContext(AuthContext);
+    const { mensaje, autenticado, iniciarSesion, usuarioAutenticado } = authContext;
+ 
+    // Effect de autenticacion
+    useEffect( ()=>{
+        if(autenticado){
+            props.history.push('/');
+        }
+    }, [ autenticado, props.history] );
+
+    // States & Hooks
+    const [ submitLogin, setSubmitLogin ] = useState(false);
+    const [ data, setData ] = useState({
+        email: '',
         password: ''
     });
+    const [ showPass, setShowPass ] = useState(false);
     const [ error, setError ] = React.useState(false);
-    const { username, password } = data;
+    const { email, password } = data;
+
+    useEffect( ()=> {
+        if(mensaje){
+            Swal.fire('Oops..', mensaje, 'error');
+            setData({
+                ...data,
+                password: ''
+            })
+        }  
+    }, [mensaje])
+
     //HandleLogin
     const handleLogin = e => {
         e.preventDefault();
         //Validaciones
-        if(username === '' || !username || password === '' || !password){
+        if(email === '' || !email || password === '' || !password){
             setError(true);
             
             return Swal.fire('Ooops', 'Algo anda mal... Por favor, rellene todos los campos.', 'error');
             
         }else{
-            setError(false);
             setSubmitLogin(true);
-            setTimeout( ()=>{
-                setSubmitLogin(false);
+            try {
+                setTimeout( ()=>{
+                    iniciarSesion({email: email, password: password})
+                    setSubmitLogin(false);
+                }, 2000);
+            } catch (error) {
+                setError(true);
                 setData({
-                    username:'',
+                    email:'',
                     password:''
                 })
-            }, 2000);
+            }
+
+            setError(false);
+            
+            
         }
     }
+
     //Handle changes on inputs
     const handleChange = e => {
         setData({
@@ -64,33 +109,43 @@ const Login = () => {
                         <h2 className='title mb4'> Bienvenido de nuevo </h2>
 
                         <div className='input-form-dello'>
-                            <div className='input-field'>
-                                <i className="fa fa-user fa-xs prefix"></i>
-                                <input 
-                                    id="usernameInput" 
-                                    name="username"
-                                    type="text" 
-                                    className="validate" 
+                            <div className="p-inputgroup">
+                                <span className="p-inputgroup-addon">
+                                    <i className="pi pi-user"></i>
+                                </span>
+                                <InputText 
+                                    name="email"
+                                    type="email"
+                                    id="usernameInput"
                                     disabled={submitLogin}
-                                    value={username}
+                                    value={email}
                                     onChange={(e)=> handleChange(e)}
+                                    style={ {height: '100%'}} 
+                                    placeholder="correo@ejemplo.com" 
                                 />
-                                <label htmlFor="usernameInput">Nombre de usuario</label>
                             </div>
                         </div>
                         <div className='input-form-dello'>
-                            <div className='input-field'>
-                                <i className="fa fa-lock fa-xs prefix"></i>
-                                <input 
-                                    id="passwordInput" 
-                                    name="password"
-                                    type="password"
-                                    className='validate'
-                                    disabled={submitLogin}
-                                    value={password}
-                                    onChange={(e)=> handleChange(e)}
+                            <div className="p-inputgroup">
+                                <span className="p-inputgroup-addon" style={{
+                                    backgroundColor: showPass ? '#EA856F' : '#ffffff',
+                                    cursor: 'pointer'
+                                    }}
+                                    onClick={()=> setShowPass(!showPass)}
+                                    tooltip={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                >
+                                    <i className="pi pi-lock"></i>
+                                </span>
+                                <InputText
+                                id="passwordInput"
+                                name="password"
+                                type={showPass ? 'text' : 'password'}
+                                disabled={submitLogin}
+                                value={password}
+                                onChange={(e)=> handleChange(e)}
+                                style={ {height: '100%'}} 
+                                placeholder="*******" 
                                 />
-                                <label htmlFor="passwordInput">Contraseña</label>
                             </div>
                         </div>
                         <a className='forgot-password' href="!#">Olvidaste tu contraseña?</a>
