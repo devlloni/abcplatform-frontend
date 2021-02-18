@@ -1,8 +1,8 @@
 import React from 'react';
 import { Toast } from 'primereact/toast';
 import { TabMenu } from 'primereact/tabmenu';
-import OldHome from './Home';
-import Inicio from './Inicio';
+import OldHome from './oldHome';
+import Inicio from './CargaIncidente';
 import AgentesMateriales from './AgentesMateriales';
 import CausasBasicas from './CausasBasicas';
 import CausasGestion from './CausasGestion';
@@ -14,7 +14,7 @@ import ZonasAfectadas from './ZonasAfectadas';
 const AccidentesPersona = () => {
 
     const [ items, setItems ] = React.useState([
-        {label: 'Inicio', icon: 'pi pi-fw pi-home', component: 'Home'},
+        // {label: 'Inicio', icon: 'pi pi-fw pi-home', component: 'Home'},
         {label: 'Formas', icon: 'fas fa-digital-tachograph', component: 'Formas'},
         {label: 'Agentes Materiales', icon: 'fas fa-list', component: 'AgentesMateriales'},
         {label: 'Nat. Lesión', icon: 'fas fa-file-medical-alt', component: 'NaturalezaLesion'},
@@ -51,7 +51,7 @@ const AccidentesPersona = () => {
                 return <ZonasAfectadas showToast={showToast} />
             default:
                 // return <OldHome showToast={showToast} setActiveItem={setActiveItem} />
-                return <Inicio showToast={showToast} setActiveItem={setActiveItem} />
+                return <Formas showToast={showToast} setActiveItem={setActiveItem} />
         }
     }
 

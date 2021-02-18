@@ -10,13 +10,23 @@ import { Calendar } from 'primereact/calendar'
 import { ScrollPanel } from 'primereact/scrollpanel';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment';
+import styled from 'styled-components';
 
-const InicioPersona = () => {
+const Divisor = styled.hr`
+    margin-top: '1.5em';
+    margin-bottom: 1.5em;
+    color: black;
+`;
+
+
+
+const CargaIncidente = () => {
+
+    const [ sucursal, setSucursal ] = useState('');
     const [ dataForm, setDataForm ] = useState({
         nombre: '',
         usuario: '',
         compania: '',
-        sucursal: '',
         medico: '',
         puesto: '',
         lugar: '',
@@ -49,7 +59,6 @@ const InicioPersona = () => {
     const [ enviarMail, setEnviarMail ] = useState(false);
     //
     const [ compania, setCompania ] = useState('');
-    const [ sucursal, setSucursal ] = useState('');
     const [ lugares, setLugares ] = useState(null);
     const [ puestos, setPuestos ] = useState(null);
     const [ sectores, setSectores ] = useState(null);
@@ -101,7 +110,8 @@ const InicioPersona = () => {
 
     const getSucursal = async (companieId) => {
         const resp = await clienteAxios.get(`/branchoffices/${companieId}`);
-        setSucursal(resp.data);
+        let sucursal = resp.data;
+        return sucursal;        
     }
 
     const getDataByCompanie = async (companieId) => {
@@ -178,34 +188,55 @@ const InicioPersona = () => {
         });
     }
 
-    const onChangeEmpleado = empleado => {
+    const onChangeEmpleado = async empleado => {
         if(!companias || !empleado){
             console.log(empleado);
             return;
         }
         else{
-            // console.log(empleado);
-            //!Handle user
-            
-            //!Handle companie
-            let companiaSeleccionada = companias.filter(comp=>{
-                return comp._id === empleado.compania
-            });
-            if(companiaSeleccionada.length>0){
-                setCompania(companiaSeleccionada[0]);
-                getDataByCompanie(companiaSeleccionada[0]._id);
-                
-            }else{
-               return
-            }
-            // 
-            //!Handle sucursales.
-            if(('branchoffice' in empleado)){
-                if(empleado.branchoffice !== null || empleado.branchoffice !== undefined){
-                    getSucursal(empleado.branchoffice);
-                    //
+            if(typeof(empleado) === 'object'){
+                console.log(empleado);
+                setDataForm({
+                    ...dataForm,
+                    usuario: empleado._id,
+                    nombre: empleado.nombreCompleto,
+                    compania: empleado.compania
+                })
+                 //!Handle companie
+                let companiaSeleccionada = companias.filter(comp=>{
+                    return comp._id === empleado.compania
+                });
+                if(companiaSeleccionada.length>0){
+                    setCompania(companiaSeleccionada[0]);
+                    getDataByCompanie(companiaSeleccionada[0]._id);
+                    
+                }else{
+                   return
+                }
+                //!Handle sucursales.
+                if(('branchoffice' in empleado)){
+                    if(empleado.branchoffice !== null || empleado.branchoffice !== undefined){
+                        let sucursalObtained = await getSucursal(empleado.branchoffice);
+                        //
+                        if(sucursalObtained || sucursalObtained !== null || sucursalObtained !== undefined){
+                            setSucursal(sucursalObtained);
+                            // setTimeout(()=> {
+                            //     setDataForm({
+                            //         ...dataForm,
+                            //         sucursal: sucursalObtained._id
+                            //     });
+                            // }, 1000)
+                        }
+                    }
                 }
             }
+            //!Handle user
+            
+           
+            
+            
+            // 
+            
             //!Restart the config
             
         }
@@ -270,14 +301,14 @@ const InicioPersona = () => {
     const renderSecondLineUser = (
         <div className='p-grid p-fluid p-mr-1 p-ml-1'>
                     <div className='p-sm-5 p-col-6'>
-                        <label htmlFor='Medico'>Médico a cargo</label>
+                        <label htmlFor='provincia'>Provincia</label>
                         <InputText 
-                            name='medico'
-                            placeholder='Medico a cargo'
-                            value={dataForm.medico}
-                            onChange={(e)=>{
-                                setDataForm({...dataForm, medico: e.target.value})
-                            }}
+                            name='provincia'
+                            placeholder='Provincia...'
+                            value={
+                                selectedEmpleado && (selectedEmpleado.provincia !== undefined || selectedEmpleado.provincia !== null ) ? selectedEmpleado.provincia : ''
+                            }
+                            disabled={true}
                         />
                     </div>
                     <div className='p-sm-5 p-col-5'>
@@ -563,13 +594,38 @@ const InicioPersona = () => {
                 }}>{ enviarMail ? 'Si' : 'No' }</div>
             </div>
         </div>
-    )
+    );
+
+    const renderSevenLine = (
+        <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+            <div className='p-sm-5 p-col-12'>
+                <label htmlFor='forma'>Forma</label>
+                <Dropdown 
+                    value=''
+                    options={[{label: 'uno', value: 1}, {label: 'dos', value: 2}]}
+                    onChange={(e)=> e.preventDefault()}
+                    // onChange={(e)=> setDataForm({...dataForm, fechaalta: e.value})}
+                    name='forma'
+                />
+            </div>
+            <div className='p-sm-5 p-col-12'>
+                <label htmlFor='agentematerial'>Agente Material</label>
+                <Dropdown 
+                    value=''
+                    // disabled={true}
+                    options={[{label: 'uno', value: 1}, {label: 'dos', value: 2}]}
+                    onChange={(e)=> e.preventDefault()}
+                    // onChange={(e)=> setDataForm({...dataForm, fechaalta: e.value})}
+                    name='agentematerial'
+                />
+            </div>
+        </div>
+    );
 
     const renderBlankSpace = (
         <div style={{
             paddingBottom: '5em'
         }}>
-            
         </div>
     )
 
@@ -591,7 +647,7 @@ const InicioPersona = () => {
 
                     {renderSecondLine}
         
-                <hr style={{marginTop: '1.5em'}}/>
+                    <hr style={{marginTop: '1.5em'}}/>
                 <div className='p-text-left p-ml-3 p-mb-2 p-mt-3'> Accidente </div>
 
                     {renderThirdLine}
@@ -602,7 +658,8 @@ const InicioPersona = () => {
                     {renderFiveLine}
                     <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
                     {renderSixtLine}
-
+                    <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
+                    {renderSevenLine}
                     {renderBlankSpace}
                 
             </div>
@@ -611,4 +668,4 @@ const InicioPersona = () => {
      );
 }
  
-export default InicioPersona;
+export default CargaIncidente;

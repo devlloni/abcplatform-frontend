@@ -210,18 +210,81 @@ const Appbar = (props) => {
       //!end
     }
 
+    const ListIncidentes = (
+      <div>
+        <li className="">
+              <ul className="collapsible collapsible-accordion">
+                <li>
+                  <a className="collapsible-header"> <i className='fas fa-user-injured'></i>I. Persona <i className="material-icons">arrow_drop_down</i></a>
+                  
+                  <div className="collapsible-body nav-accordion-body">
+                    <ul>
+                    
+                      <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+                        <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/persona/configuraciones'>
+                        <i className='fa fa-cog'></i>
+                        Configurar
+                        </Link>
+                      </li>
+                      <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+                        <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/persona/'>
+                        <i className='fa fa-plus'></i>
+                        Cargar
+                        </Link>
+                      </li>
+                      
+                    </ul>
+                  </div>
+                </li>
+              </ul>
+          </li>
+        <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+            <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes/propiedad'>
+              <i className='fas fa-house-damage'></i>
+              II. Propiedad
+            </Link>
+        </li>
+        <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes/ambiente'>
+                <i className='fab fa-envira'></i>
+                III. Ambiente
+              </Link>
+            </li>
+      </div>
+    );
+
     const ItemListIncidentes = () => {
       let elements = [ ];
       elements.push(<li key={CriptoRandomString({length: 10, type: 'numeric'})}></li>)
       if(userLogueado){
         if(userLogueado.administrador >= 3){
           elements.push([
-            <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
-              <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/persona'>
-                <i className='fas fa-user-injured'></i>
-                I. Persona
-              </Link>
-            </li>
+            // <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+            //   <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/persona'>
+            //     <i className='fas fa-user-injured'></i>
+            //     I. Persona
+            //   </Link>
+            // </li>
+            <li className="">
+              <ul className="collapsible collapsible-accordion">
+                <li>
+                  <a className="collapsible-header"> <i className='fas fa-user-injured'></i>I. Persona <i className="material-icons">arrow_drop_down</i></a>
+                  
+                  <div className="collapsible-body nav-accordion-body">
+                    <ul>
+                    
+                      <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+                        <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/persona'>
+                        <i className='fas fa-user-injured'></i>
+                        I. Persona
+                        </Link>
+                      </li>
+                      
+                    </ul>
+                  </div>
+                </li>
+              </ul>
+          </li>
           ]);
           elements.push([
             <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
@@ -371,7 +434,8 @@ const Appbar = (props) => {
                   <div className="collapsible-body nav-accordion-body">
                     <ul>
                       <ScrollPanel>
-                        <ItemListIncidentes />
+                        {/* <ItemListIncidentes /> */}
+                        {ListIncidentes}
                       </ScrollPanel>
                     </ul>
                   </div>
