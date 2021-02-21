@@ -27,7 +27,6 @@ const CargaIncidente = () => {
         nombre: '',
         usuario: '',
         compania: '',
-        medico: '',
         puesto: '',
         lugar: '',
         denuncia: '',
@@ -50,18 +49,24 @@ const CargaIncidente = () => {
         naturaleza: '',
         zonacuerpo: '',
         fechaalta: '',
-        diasbaja: ''
+        diasbaja: '',
+        codigo: ''
     });
     const [ selectedEmpleado, setSelectedEmpleado ] = useState(null);
     const [ empleados, setEmpleados ] = useState(null);
     const [ companias, setCompanias ] = useState(null);
     //
     const [ enviarMail, setEnviarMail ] = useState(false);
+    const [ formEnviado, setFormEnviado ] = useState(false);
     //
     const [ compania, setCompania ] = useState('');
     const [ lugares, setLugares ] = useState(null);
     const [ puestos, setPuestos ] = useState(null);
     const [ sectores, setSectores ] = useState(null);
+    const [ agentesMateriales, setAgentesMateriales ] = useState(null);
+    const [ zonaCuerpo, setZonaCuerpo ] = useState(null);
+    const [ naturalezaLesion, setNaturalezaLesion ] = useState(null);
+    const [ formas, setFormas ] = useState(null);
     const [ filteredEmpleados, setFilteredEmpleados ] = useState(null);
     //*
     const [ denunciasConfig, setDenunciasConfig ] = useState([
@@ -90,7 +95,9 @@ const CargaIncidente = () => {
         if(!companias){
             getCompanies();
         }
-        
+        if(!formas || !naturalezaLesion || !agentesMateriales || !zonaCuerpo){
+            getGeneralData();
+        }
         
     }, []);
 
@@ -144,6 +151,44 @@ const CargaIncidente = () => {
         }
         // setLugares(dataLugares);
         // setPuestos(dataPuestos);
+    }
+
+    const getGeneralData = async () => {
+        const resp = await clienteAxios.get('/generaldata/allData');
+        let allResp = resp.data;
+        let formas = allResp.formas;
+        let agentesmateriales = allResp.agentesmateriales;
+        let zonacuerpo = allResp.zonacuerpo;
+        let naturaleza = allResp.naturaleza;
+
+        let dataFormas = [];
+        if(allResp.formas.length > 0){
+            for(let i = 0; i < formas.length; i++){
+                dataFormas.push({label: formas[i].nombreaccidente, value: formas[i]._id});
+            }
+            setFormas(dataFormas);
+        }
+        let dataAgentes = [];
+        if(allResp.agentesmateriales.length > 0){
+            for(let i = 0; i < agentesmateriales.length; i++){
+                dataAgentes.push({label: agentesmateriales[i].nombreagentematerial, value: agentesmateriales[i]._id});
+            }
+            setAgentesMateriales(dataAgentes);
+        }
+        let dataNaturaleza = [];
+        if(allResp.naturaleza.length > 0){
+            for(let i = 0; i < naturaleza.length; i++){
+                dataNaturaleza.push({label: naturaleza[i].nombrenaturalezalesion, value: naturaleza[i]._id});
+            }
+            setNaturalezaLesion(dataNaturaleza);
+        }
+        let dataZonaCuerpo = [];
+        if(allResp.zonacuerpo.length > 0){
+            for(let i = 0; i < zonacuerpo.length; i++){
+                dataZonaCuerpo.push({label: zonacuerpo[i].nombrezonacuerpo, value: zonacuerpo[i]._id});
+            }
+            setZonaCuerpo(dataZonaCuerpo);
+        }
     }
 
     const searchEmpleado = event => {
@@ -249,6 +294,10 @@ const CargaIncidente = () => {
             let fechaAccidente = moment(dataForm.fechaincidente);
             // let diferencia = fechaAccidente.diff(fechaAlta, 'days');
             let diferencia = fechaAlta.diff(fechaAccidente, 'days');
+            setDataForm({
+                ...dataForm,
+                diasbaja: diferencia
+            });
             return diferencia;
         }
 
@@ -274,6 +323,7 @@ const CargaIncidente = () => {
                                 completeMethod={searchEmpleado}
                             />
                         </span>
+                        {formEnviado && !selectedEmpleado ? <small style={{color: 'red'}}>El empleado es obligatorio.</small> : ''}
                     </div>
                     <div className='p-sm-4 p-col-12'>
                         <label htmlFor='compania'>Pertenece a la empresa</label>
@@ -361,6 +411,7 @@ const CargaIncidente = () => {
                         });
                     }}
                 />
+                {formEnviado && !dataForm.denuncia ? <small style={{color: 'red'}}>El tipo de denuncia es obligatorio.</small> : ''}
             </div>
             <div className='p-sm-4 p-col-12'>
                 <label htmlFor='tipo'>Tipo de accidente</label>
@@ -376,9 +427,12 @@ const CargaIncidente = () => {
                         });
                     }}
                 />
+                {formEnviado && !dataForm.tipo ? <small style={{color: 'red'}}>El tipo de accidente es obligatorio.</small> : ''}
             </div>
         </div>
     )
+
+    
 
     const renderSecondLine = (
         <div className='p-grid p-fluid p-mr-1 p-ml-1'key='renderSecondLine'>
@@ -387,12 +441,20 @@ const CargaIncidente = () => {
                 <Calendar 
                     id='fechadenuncia'
                     key='fechadenuncia'
-                    placeholder='Fecha de denuncia'
+                    placeholder={ dataForm.fechaincidente ? 'Fecha de denuncia' : 'Primero setee la fecha del accidente'}
                     name='fechadenuncia'
                     dateFormat='dd/mm/yy'
+                    disabled={ dataForm.fechaincidente ? false : true }
                     locale={localeEs}
+                    minDate={ dataForm.fechaincidente }
                     value={dataForm.fechadenuncia}
+                    onChange={(e) => setDataForm({
+                        ...dataForm,
+                        fechadenuncia: e.value
+                    })}
                 />
+                {formEnviado && !dataForm.fechadenuncia ? <small style={{color: 'red'}}>La fecha de denuncia es obligatoria.</small> : ''}
+                {dataForm.fechaincidente ? '' : <small>Recuerde que primero debe setear la fecha del incidente</small>}
             </div>
             <div className='p-sm-6 p-col-12'>
                 <label htmlFor='numerosiniestro'>Nro. de siniestro</label>
@@ -408,6 +470,7 @@ const CargaIncidente = () => {
                     placeholder='N° de siniestro'
                     type='number'
                 />
+                {formEnviado && !dataForm.numerosiniestro ? <small style={{color: 'red'}}>El número de siniestro es obligatorio.</small> : ''}
             </div>
         </div>
     )
@@ -424,6 +487,7 @@ const CargaIncidente = () => {
                     value={dataForm.fechaincidente}
                     onChange={(e)=>setDataForm({...dataForm, fechaincidente: e.value})}
                 />
+                {formEnviado && !dataForm.fechaincidente ? <small style={{color: 'red'}}>La fecha del incidente es obligatoria.</small> : ''}
             </div>
             <div className='p-sm-4 p-col-12'>
                 <label htmlFor='horaaccidente'>Hora del accidente</label>
@@ -434,6 +498,7 @@ const CargaIncidente = () => {
                     type='time'
                     name='horaaccidente'
                 />
+                {formEnviado && !dataForm.horaaccidente ? <small style={{color: 'red'}}>La hora del incidente es obligatoria.</small> : ''}
             </div>
             <div className='p-sm-4 p-col-12'>
                 <label htmlFor='lugares'>Seleccione lugar</label>
@@ -445,6 +510,7 @@ const CargaIncidente = () => {
                     onChange={(e)=> setDataForm({...dataForm, lugar: e.value})}
                     placeholder='¿En qué lugar se encontraba?'
                 />
+                {formEnviado && !dataForm.lugar ? <small style={{color: 'red'}}>El lugar es obligatorio.</small> : ''}
             </div>
         </div>
     );
@@ -464,6 +530,7 @@ const CargaIncidente = () => {
                         });
                     }}
                 />
+                {formEnviado && !dataForm.gravedad ? <small style={{color: 'red'}}>La gravedad es obligatoria.</small> : ''}
             </div>
             <div className='p-sm-4 p-col-12'>
                 <label htmlFor='horaingreso'>Hora de ingreso</label>
@@ -474,6 +541,7 @@ const CargaIncidente = () => {
                     onChange={(e)=>setDataForm({...dataForm, horaingreso: e.target.value})}
                     placeholder="Hora de ingreso"
                 />
+                {formEnviado && !dataForm.horaingreso ? <small style={{color: 'red'}}>La hora del ingreso es obligatoria.</small> : ''}
             </div>
             <div className='p-sm-4 p-col-12'>
                         <label htmlFor='sector'>Seleccione sector</label>
@@ -485,6 +553,7 @@ const CargaIncidente = () => {
                             onChange={(e)=> setDataForm({...dataForm, sector: e.value})}
                             placeholder='¿En qué sector se encontraba?'
                         />
+                        {formEnviado && !dataForm.sector ? <small style={{color: 'red'}}>El sector es obligatorio.</small> : ''}
             </div>
         </div>
     )
@@ -500,6 +569,7 @@ const CargaIncidente = () => {
                     placeholder='Turno del empleado'
                     name='turno'
                 />
+                {formEnviado && !dataForm.turno ? <small style={{color: 'red'}}>El turno es obligatorio.</small> : ''}
             </div>
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='jefeacargo'>Jefe a cargo</label>
@@ -510,6 +580,7 @@ const CargaIncidente = () => {
                     placeholder='Jefe a cargo'
                     name='jefeacargo'
                 />
+                {formEnviado && !dataForm.jefeacargo ? <small style={{color: 'red'}}>El jefe a cargo es obligatorio.</small> : ''}
             </div>
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='testigos'>Testigos</label>
@@ -520,6 +591,7 @@ const CargaIncidente = () => {
                     placeholder='Testigos'
                     name='testigos'
                 />
+                {/* {formEnviado && !dataForm.testigos ? <small style={{color: 'red'}}>Los testigos son obligatorios (min 1).</small> : ''} */}
             </div>
             <div className='p-sm-1 p-col-6'>
                 <label htmlFor='estabaenpuesto'>¿Era su puesto?</label>
@@ -538,6 +610,7 @@ const CargaIncidente = () => {
                     options={sinoConfig}
                     name='trabajohabitual'
                 />
+                {formEnviado && !dataForm.trabajohabitual ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
             </div>
         </div>
     );
@@ -553,6 +626,7 @@ const CargaIncidente = () => {
                     onChange={(e)=> setDataForm({...dataForm, fechaalta: e.value})}
                     name='fechaalta'
                 />
+                {formEnviado && !dataForm.fechaalta ? <small style={{color: 'red'}}>La fecha de alta es obligatoria.</small> : ''}
             </div>
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='diasbaja'>Dias de baja</label>
@@ -572,6 +646,7 @@ const CargaIncidente = () => {
                     onChange={(e)=> setDataForm({...dataForm, recalificacion: e.value})}
                     name='recalificacion'
                 />
+                {formEnviado && !dataForm.recalificacion ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
             </div>
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='enviarmail'>¿Enviar mail a responsables de la empresa?</label>
@@ -601,26 +676,77 @@ const CargaIncidente = () => {
             <div className='p-sm-5 p-col-12'>
                 <label htmlFor='forma'>Forma</label>
                 <Dropdown 
-                    value=''
-                    options={[{label: 'uno', value: 1}, {label: 'dos', value: 2}]}
-                    onChange={(e)=> e.preventDefault()}
+                    value={dataForm.forma}
+                    options={formas}
+                    onChange={(e)=> setDataForm({
+                        ...dataForm,
+                        forma: e.value
+                    })}
                     // onChange={(e)=> setDataForm({...dataForm, fechaalta: e.value})}
                     name='forma'
                 />
+                {formEnviado && !dataForm.forma ? <small style={{color: 'red'}}>Este dato es requerido.</small> : ''}
             </div>
             <div className='p-sm-5 p-col-12'>
                 <label htmlFor='agentematerial'>Agente Material</label>
                 <Dropdown 
-                    value=''
-                    // disabled={true}
-                    options={[{label: 'uno', value: 1}, {label: 'dos', value: 2}]}
-                    onChange={(e)=> e.preventDefault()}
-                    // onChange={(e)=> setDataForm({...dataForm, fechaalta: e.value})}
+                    value={dataForm.agentematerial}
+                    options={agentesMateriales}
+                    onChange={(e)=> setDataForm({
+                        ...dataForm,
+                        agentematerial: e.value
+                    })}
                     name='agentematerial'
                 />
+                {formEnviado && !dataForm.agentematerial ? <small style={{color: 'red'}}>Este dato es requerido.</small> : ''}
             </div>
         </div>
     );
+
+    const renderDiagnostico1 = (
+        <div>
+            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+                <div className='p-sm-3 p-col-12'>
+                    <label htmlFor='codigodiez'>CODIGO CIE 10</label>
+                    <InputText 
+                        value={''}
+                        placeholder='Codigo'
+                        name='codigodiez'
+                        onChange={(e) => e.preventDefault()}
+                    />
+                </div>
+                <div className='p-sm-9 p-col-12'>
+                    <label htmlFor='buscarcodigo'>Buscar</label>
+                    <InputText 
+                        value={''}
+                        placeholder='Buscar código CIE 10'
+                        name='buscarcodigo'
+                        onChange={(e) => e.preventDefault()}
+                    />
+                </div>
+            </div>
+            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+                <div className='p-sm-6 p-col-12'>
+                    <label htmlFor='naturaleza'>Naturaleza de la lesión</label>
+                    <Dropdown 
+                        name='naturaleza'
+                        options={naturalezaLesion}
+                        value={dataForm.naturaleza}
+                        onChange={(e) => setDataForm({... dataForm, naturaleza: e.value})}
+                    />
+                </div>
+                <div className='p-sm-6 p-col-12'>
+                    <label htmlFor='zonacuerpo'>Zona de cuerpo afectada</label>
+                    <Dropdown 
+                        name='zonacuerpo'
+                        options={zonaCuerpo}
+                        value={dataForm.zonacuerpo}
+                        onChange={(e) => setDataForm({... dataForm, zonacuerpo: e.value})}
+                    />
+                </div>
+            </div>
+        </div>
+    )
 
     const renderBlankSpace = (
         <div style={{
@@ -659,7 +785,37 @@ const CargaIncidente = () => {
                     <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
                     {renderSixtLine}
                     <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
+                    <div className='p-text-left p-ml-3 p-mb-2 p-mt-3'> Codificación de datos del sinietro </div>
                     {renderSevenLine}
+
+                    <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
+                    <div className='p-text-left p-ml-3 p-mb-2 p-mt-3'> Diagnostico 1 </div>
+                    {renderDiagnostico1}
+
+                    <Button 
+                        style={{width: '90%', marginTop: '1%', marginBottom: '1%', marginLeft: '5%', marginRight: '5%'}}
+                        label='Agregar diagnostico'
+                        icon='pi pi-plus'
+                        color='#444'
+                        disabled={true}
+                        onClick={(e) => e.preventDefault()}
+                    />
+                    <div className='p-grid p-fluid p-mt-4'>
+                        <div className='p-md-4 p-col-1'>
+
+                        </div>
+                        <div className='p-md-4 p-col-1'>
+
+                        </div>
+                        <div className='p-md-4 p-col-12'>
+                            <Button 
+                                label='Guardar'
+                                icon='pi pi-save'
+                                className='p-button-primary'
+                                onClick={(e) => setFormEnviado(true)}
+                            />
+                        </div>
+                    </div>
                     {renderBlankSpace}
                 
             </div>
