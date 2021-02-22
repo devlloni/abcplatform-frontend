@@ -31,6 +31,7 @@ import Puestos from './components/Routes/Puestos/Puestos';
 //*Incidentes [PERSONA] config.
 import AccidentesHome from './components/Routes/Accidentes/AccidentesHome';
 import CargaIncidente from './components/Routes/Accidentes/CargaIncidente';
+import CargaIncidentePropiedad from './components/Routes/Accidentes_Propiedad/CargaIncidente';
 //*Incidentes [PROPIEDAD] home.
 import AccidentesPropiedad from './components/Routes/Accidentes_Propiedad/AccidentesPropiedadHome';
 //*Auth
@@ -66,6 +67,7 @@ function App() {
             <RutaPrivada path='/lugarestrabajo' exact component={Lugares} adminRequired={4} />
             <RutaPrivada path='/puestostrabajo' exact component={Puestos} adminRequired={4} />
             <RutaPrivada path='/incidentes/persona' exact component={CargaIncidente} />
+            <RutaPrivada path='/incidentes/propiedad' exact component={CargaIncidentePropiedad} />
             <RutaPrivada path='/incidentes/persona/configuraciones' exact component={AccidentesHome} />
             <RutaPrivada path='/incidentes/propiedad' exact component={AccidentesPropiedad} />
             <RutaPrivada component={NotFound} />
