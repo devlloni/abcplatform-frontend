@@ -23,6 +23,17 @@ import Sucursales from './components/Routes/Sucursales/Sucursales';
 import Empleados from './components/Routes/Empleados/Empleados';
 //*Sectores de trabajo
 import Sectores from './components/Routes/Sectores/Sectores';
+//*Lugares de trabajo
+import Lugares from './components/Routes/Lugares/Lugares';
+//*Puestos de trabajo
+import Puestos from './components/Routes/Puestos/Puestos';
+
+//*Incidentes [PERSONA] config.
+import AccidentesHome from './components/Routes/Accidentes/AccidentesHome';
+import CargaIncidente from './components/Routes/Accidentes/CargaIncidente';
+import CargaIncidentePropiedad from './components/Routes/Accidentes_Propiedad/CargaIncidente';
+//*Incidentes [PROPIEDAD] home.
+import AccidentesPropiedad from './components/Routes/Accidentes_Propiedad/AccidentesPropiedadHome';
 //*Auth
 import RutaPrivada from './components/Routes/RutaPrivada';
 import NotFound from './components/Routes/NotFound';
@@ -52,7 +63,13 @@ function App() {
             <RutaPrivada path='/companies' exact component={Companie} adminRequired={4} />
             <RutaPrivada path='/empleados' exact component={Empleados} adminRequired={4}/>
             <RutaPrivada path='/sucursales' exact component={Sucursales} adminRequired={4} />
-            <RutaPrivada path='/sectorestrabajo' exact component={Sectores} adminRequired={4} />
+            <RutaPrivada path='/sectorestrabajo' exact component={Sectores} adminRequired={4} /> {/* ABC-14 */}
+            <RutaPrivada path='/lugarestrabajo' exact component={Lugares} adminRequired={4} />
+            <RutaPrivada path='/puestostrabajo' exact component={Puestos} adminRequired={4} />
+            <RutaPrivada path='/incidentes/persona' exact component={CargaIncidente} />
+            <RutaPrivada path='/incidentes/propiedad' exact component={CargaIncidentePropiedad} />
+            <RutaPrivada path='/incidentes/persona/configuraciones' exact component={AccidentesHome} />
+            <RutaPrivada path='/incidentes/propiedad' exact component={AccidentesPropiedad} />
             <RutaPrivada component={NotFound} />
             {/* <RutaPrivadaAdmin path='/companies' exact adminRequired={4}  component={Companies} /> */}
           </Switch>

@@ -1,4 +1,5 @@
 import React, {Fragment, useState, useEffect, useRef} from 'react';
+import Swal from 'sweetalert2';
 import useWindowSize from '../../../hooks/useWindowSize';
 import clienteAxios from '../../../config/clienteAxios';
 import classNames from 'classnames';
@@ -12,30 +13,29 @@ import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Table } from '@fullcalendar/daygrid';
 import { InputTextarea } from 'primereact/inputtextarea';
-const Sectores = () => {
-    document.title = "ABC | Sectores";
+const Lugares = () => {
+    document.title = "ABC | Lugares";
     const { width } = useWindowSize();
 
-    const [ sectores, setSectores ] = useState(null);
-    const [ sectorDialog, setSectorDialog ] = useState(false);
+    const [ lugares, setLugares ] = useState(null);
+    const [ lugarDialog, setLugarDialog ] = useState(false);
     const [ yaExiste, setYaExiste ] = useState(false);
     const [ enviado, setEnviado ] = useState(false);
-    const [ sector, setSector ] = useState({
+    const [ lugar, setLugar ] = useState({
         id: '',
-        nombreSector: '',
+        nombreLugar: '',
         idCompania: '',
         nombreCompania: '',
         comentarios: ''
     });
     const [ globalFilter, setGlobalFilter ] = useState('');
     const [ companias, setCompanias ] = useState(null);
-    const [ selectedSector, setSelectedSector ] = useState(null);
 
-    const { nombreSector, idCompania, comentarios } = sector;
+    const { nombreLugar, idCompania, comentarios } = lugar;
 
-    const getSectores = async () => {
-        const resp = await clienteAxios.get('/companias/sectores');
-        setSectores(resp.data.sectores);
+    const getLugares = async () => {
+        const resp = await clienteAxios.get('/companias/lugares');
+        setLugares(resp.data.lugares);
         return;
     }
 
@@ -55,87 +55,121 @@ const Sectores = () => {
     }
 
     useEffect( ()=>{
-        if(!sectores){
-            getSectores();
+        if(!lugares){
+            getLugares();
         }
         if(!companias){
             getCompanies();
         }
     }, []);
 
-    const reiniciarSector = () => {
-        setSector({
+    const reiniciarLugar = () => {
+        setLugar({
             id: null,
             idCompania: '',
             nombreCompania: '',
-            nombreSector: '',
+            nombreLugar: '',
             comentarios: ''
         });
         return;
     }
 
-    const showSectorDialog = e => {
-        setSectorDialog(true);
+    const showLugarDialog = e => {  
+        setLugarDialog(true);
     }
 
-    const submitEditSector = async (sector) => {
-        const resp = await clienteAxios.post('/companias/sectores/edit', sector);
+    const submitEditLugar = async (lugar) => {
+        const resp = await clienteAxios.post('/companias/lugares/edit', lugar);
         if(resp.status === 200 && resp.data.msg === 'ok'){
-            let msg = `¡El sector [ "${sector.nombreSector}" ] fué actualizado correctamente.`;
-            getSectores();
-            setSectorDialog(false);
-            reiniciarSector();
+            let msg = `¡El lugar [ "${lugar.nombreLugar}" ] fué actualizado correctamente.`;
+            getLugares();
+            setLugarDialog(false);
+            reiniciarLugar();
             return showToast('success', '¡Exito!', msg);
         }
         if(resp.status === 200 && resp.data.msg === 'exists'){
             setYaExiste(true);
-            let msg = `¡El sector [ "${sector.nombreSector}" ] ya existe! Intente con otro nombre.`;
+            let msg = `¡El lugar [ "${lugar.nombreLugar}" ] ya existe! Intente con otro nombre.`;
             return showToast('warn', '¡Atención!', msg);
         }
     }
 
-    const submitNewSector = async () => {
+    const submitDeleteLugar = async ( id ) => {
+        console.log('Intentando eliminar el id: ', id);
+        const resp = await clienteAxios.post('/companias/lugares/delete', {id});
+        if(resp.status === 200){
+            getLugares();
+            return showToast('success', '¡Perfecto!', '¡El lugar fué eliminado con éxito!');
+        }else{
+            return showToast('error', '¡Error!', '¡Ocurrió un error inesperado! Por favor, inténtalo más tarde.');
+        }
+    }
+
+    const handleDeleteLugar = (rawData) => {
+        Swal.fire({
+            title: `¿Estás seguro de eliminar el lugar "${rawData.nombreLugar}"?`,
+            text: 'No podrás volver atrás.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, borrarlo.',
+            cancelButtonText: 'No, cancelar.'
+          }).then((result) => {
+            if (result.value) {
+              //! HANDLE DELETE, 
+              submitDeleteLugar(rawData._id);
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+              Swal.fire(
+                'Cancelado',
+                'El lugar sigue conservándose en la base de datos.',
+                'warn'
+              )
+            }
+          })
+    }
+
+    const submitnewLugar = async () => {
         setEnviado(true);
         if(!idCompania || idCompania.length === 0 ||
-           !nombreSector || nombreSector.length === 0    
+           !nombreLugar || nombreLugar.length === 0    
         ){
             return showToast('error', '¡Error!', '¡Completa todos los campos e intentelo de nuevo!');
         }
-        if(sector._id){
-            return submitEditSector(sector);
+        if(lugar._id){
+            return submitEditLugar(lugar);
         }
         else{
             
-                const respuesta = await clienteAxios.post('/companias/sectores', sector);
+                const respuesta = await clienteAxios.post('/companias/lugares', lugar);
                 if(respuesta.status === 200 && respuesta.data.msg === 'ok'){
-                    getSectores();
+                    getLugares();
                     setEnviado(false);
-                    setSectorDialog(false);
-                    reiniciarSector();
-                    return showToast('success', '¡Sector cargado con éxito!', 'El sector fué cargado correctamente en la base de datos.');
+                    setLugarDialog(false);
+                    reiniciarLugar();
+                    setYaExiste(false);
+                    return showToast('success', '¡Lugar cargado con éxito!', 'El lugar fué cargado correctamente en la base de datos.');
                 }
                 else if(respuesta.status === 200 && respuesta.data.msg === 'exists'){
                     setYaExiste(true);
-                    let msg = `¡El sector [ "${sector.nombreSector}" ] ya existe! Intente con otro nombre.`;
+                    let msg = `¡El lugar [ "${lugar.nombreLugar}" ] ya existe! Intente con otro nombre.`;
                     return showToast('warn', '¡Atención!', msg);
                 }
                 else{
                     setYaExiste(false);
                     return showToast('error', '¡Error!', 'Lo sentimos, ocurrió un error inesperrado en el sistema, inténtelo más tarde.');
-                }
-                
+                }   
         }
     }
 
     const hideDialog = e => {
-        setSectorDialog(false);
+        setLugarDialog(false);
         setEnviado(false);
-        reiniciarSector();
+        setYaExiste(false);
+        reiniciarLugar();
     }
 
     const onInputChange = e => {
-        setSector({
-            ...sector,
+        setLugar({
+            ...lugar,
             [e.target.name] : e.target.value
         });
         if(e.target.name === 'idCompania'){
@@ -145,37 +179,37 @@ const Sectores = () => {
                 companias.forEach( companie => {
                     if(companie.value === e.target.value){
                         comp = companie.label;
-                        setSector({
-                            ...sector,
+                        setLugar({
+                            ...lugar,
                             nombreCompania: comp,
                             [e.target.name] : e.target.value
                         });
                     }
                 });
             }
+            //*
         }
-        if(e.target.name === 'nombreSector'){
+        if(e.target.name === 'nombreLugar'){
             setYaExiste(false);
         }
     }
 
-    const editSector = sector => {
-        console.log(sector);
-        setSector(sector);
-        setSectorDialog(true);
+    const EditLugar = lugar => {
+        setLugar(lugar);
+        setLugarDialog(true);
     }
 
-    const dialogSectorFooter = (
+    const dialogLugarFooter = (
                 <div>
                     <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={()=> hideDialog()} />
-                    <Button label="Guardar" icon="pi pi-check" className="p-button-text" onClick={()=> submitNewSector()} />
+                    <Button label="Guardar" icon="pi pi-check" className="p-button-text" onClick={()=> submitnewLugar()} />
                 </div>
         );
     
 
     const TableHeader = (
         <div className="table-header">
-                Lista de sectores
+                Lista de Lugares
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Filtros globales" />
@@ -186,14 +220,14 @@ const Sectores = () => {
     const actionBody = (rawData) => {
         return(
             <div className='p-text-center'>
-                <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => editSector(rawData)} />
-                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={(e) => e.preventDefault()} />
+                <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => EditLugar(rawData)} />
+                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => handleDeleteLugar(rawData)} />
             </div>
         );
     }
 
     const headerDialog = (
-        <div className='center'>Detalles del sector</div>
+        <div className='center'>Detalles del lugar</div>
     );
 
     const idBodyTemplate = rowData => {
@@ -221,7 +255,7 @@ const Sectores = () => {
         return(
             <Fragment>
                 <span className='p-column-title'></span>
-                {rawData.nombreSector}
+                {rawData.nombreLugar}
             </Fragment>
         )
     }
@@ -230,7 +264,7 @@ const Sectores = () => {
         <div className="datatable-crud-demo"style={
             {paddingBottom: '50px',marginTop: '0.8em', marginLeft: '0.8em', marginRight: '0.8em'}
         }>
-            <h5 className='center'>Sectores de trabajo</h5>
+            <h5 className='center'>Lugares de trabajo</h5>
             <Toast ref={myToast} />
             <div className='card'>
                 <div className="p-grid p-fluid" style={{
@@ -242,7 +276,7 @@ const Sectores = () => {
                         label="Nuevo" 
                         icon={ width < 320 ? '' : "pi pi-plus" }
                         className="p-button-success p-mr-2" 
-                        onClick={(e)=> showSectorDialog()} 
+                        onClick={(e)=> showLugarDialog()} 
                         />
                     </div>
                     <div className='p-col-3'>
@@ -263,18 +297,18 @@ const Sectores = () => {
                             />
                         </div>
                 </div>
-                {sectores ? (
+                {lugares ? (
                     <div className='datatable-filter-demo'>
                         <div className='card'>
                         <DataTable
-                            value={sectores}
+                            value={lugares}
                             className='p-datatable-responsive-demo'
                             paginator rows={4}
                             header={TableHeader}
                             globalFilter={globalFilter}
                         >
-                            <Column field="nombreSector" header="Nombre" body={nombreBodyTemplate} 
-                                filter={true} filterPlaceholder={'Buscar por nombre de sector'}
+                            <Column field="nombreLugar" header="Nombre" body={nombreBodyTemplate} 
+                                filter={true} filterPlaceholder={'Buscar por nombre de lugar'}
                             />
                             <Column field='nombreCompania' header='Companía asociada' body={idBodyTemplate}
                                 filter={true} filterPlaceholder='Buscar por Companía.'
@@ -290,11 +324,11 @@ const Sectores = () => {
                 }
                 {/* ---- DIALOGS ----  */}
                 <Dialog
-                    visible={sectorDialog}
+                    visible={lugarDialog}
                     style={ width < 993 ? {width: '450px'} : {width: '750px'}}
                     header={headerDialog}
                     modal className='p-fluid'
-                    footer={dialogSectorFooter}
+                    footer={dialogLugarFooter}
                     onHide={()=>hideDialog()}
                 >
                     <div className='p-grid p-fluid'>
@@ -304,24 +338,24 @@ const Sectores = () => {
                                 name="idCompania"
                                 id="idCompania"
                                 options={companias} 
-                                className={classNames({ 'p-invalid': enviado && !sector.idCompania })}
+                                className={classNames({ 'p-invalid': enviado && !lugar.idCompania })}
                                 onChange={(e) => onInputChange(e)} 
                                 placeholder="¿A qué compañía está asociado?"
                             />
-                            {enviado && !sector.idCompania && <small className="p-invalid">La compañía asociada es obligatoria.</small>}
+                            {enviado && !lugar.idCompania && <small className="p-invalid">La compañía asociada es obligatoria.</small>}
                         </div>
                     </div>
                     <div className='p-grid p-fluid'>
                         <div className='p-col-12'>
                             <InputText 
-                                value={nombreSector}
-                                name='nombreSector'
-                                id='nombreSector'
-                                className={classNames({ 'p-invalid': enviado && (!sector.nombreSector || yaExiste) })}
+                                value={nombreLugar}
+                                name='nombreLugar'
+                                id='nombreLugar'
+                                className={classNames({ 'p-invalid': enviado && (!lugar.nombreLugar || yaExiste) })}
                                 onChange={(e)=> onInputChange(e)}
-                                placeholder="Nombre del sector"
+                                placeholder="Nombre del lugar"
                             />
-                            {enviado && !sector.nombreSector && <small className="p-invalid">El nombre del sector es obligatorio.</small>}
+                            {enviado && !lugar.nombreLugar && <small className="p-invalid">El nombre del lugar es obligatorio.</small>}
                             {enviado && yaExiste ? ( <small> EL nombre ingresado ya existe. Intente con otro. </small> ) : null}
                         </div>
                     </div>
@@ -333,7 +367,7 @@ const Sectores = () => {
                                 name='comentarios'
                                 id='comentarios'
                                 onChange={(e)=> onInputChange(e)}
-                                placeholder='Comentarios del sector'
+                                placeholder='Comentarios del lugar'
                             />
                         </div>
                     </div>
@@ -343,4 +377,4 @@ const Sectores = () => {
      );
 }
  
-export default Sectores;
+export default Lugares;
