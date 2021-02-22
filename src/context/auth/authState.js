@@ -4,14 +4,14 @@ import AuthReducer from './authReducer';
 import clienteAxios from '../../config/clienteAxios';
 import tokenAuth from '../../config/tokenAuth';
 
-//Importamos los types.
-import { 
-    LOGIN_ERROR,
-    LOGIN_EXITOSO,
-    OBTENER_USUARIO,
-    CERRAR_SESION,
-    AUTH_ERROR
-} from './authTypes';
+    //Importamos los types.
+    import { 
+        LOGIN_ERROR,
+        LOGIN_EXITOSO,
+        OBTENER_USUARIO,
+        CERRAR_SESION,
+        AUTH_ERROR
+    } from './authTypes';
 import Swal from 'sweetalert2';
 
 const AuthState = props => {
@@ -33,7 +33,7 @@ const AuthState = props => {
             tokenAuth(token);
         }
         try {
-            const respuesta = await clienteAxios.get('/auth');
+            const respuesta = await clienteAxios.get('https://abc-platform.herokuapp.com/api/auth');
             dispatch({
                 type: OBTENER_USUARIO,
                 payload: respuesta.data
