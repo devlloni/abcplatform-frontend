@@ -249,7 +249,13 @@ const Appbar = (props) => {
                 <i className='fab fa-envira'></i>
                 III. Ambiente
               </Link>
-            </li>
+        </li>
+        <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes/'>
+                <i className='fab fa-envira'></i>
+                Incidentes Gral.
+              </Link>
+        </li>
       </div>
     );
 
@@ -299,6 +305,14 @@ const Appbar = (props) => {
               <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes/ambiente'>
                 <i className='fab fa-envira'></i>
                 III. Ambiente
+              </Link>
+            </li>
+          ]);
+          elements.push([
+            <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
+              <Link onClick={(e)=> clickOnSidenav(e)} className='item-nav' to='/incidentes'>
+                <i className='fab fa-envira'></i>
+                Incidentes Gral.
               </Link>
             </li>
           ]);

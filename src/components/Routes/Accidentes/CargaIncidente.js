@@ -18,8 +18,6 @@ const Divisor = styled.hr`
     color: black;
 `;
 
-
-
 const CargaIncidente = () => {
 
     const [ sucursal, setSucursal ] = useState('');
@@ -377,9 +375,9 @@ const CargaIncidente = () => {
                         <InputText 
                             name='_id'
                             placeholder='Código'
-                            value={
-                                selectedEmpleado && (selectedEmpleado._id !== undefined || selectedEmpleado._id !== null ) ? selectedEmpleado._id : ''
-                            }
+                            // value={
+                            //     selectedEmpleado && (selectedEmpleado._id !== undefined || selectedEmpleado._id !== null ) ? selectedEmpleado._id : ''
+                            // }
                             disabled={true}
                         />
                     </div>
