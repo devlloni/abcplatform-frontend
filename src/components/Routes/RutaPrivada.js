@@ -1,10 +1,12 @@
-import React, {Fragment, useEffect, useContext, Suspense, useState} from 'react';
+import React, {Fragment, useEffect, useContext, Suspense, useState, useRef} from 'react';
 import { Route, Redirect } from 'react-router-dom';
 import Loader from '../Layout/Loader';
 import AuthContext from '../../context/auth/authContext';
+import { Toast } from 'primereact/toast';
 
 const RutaPrivada = ({ path, exact = false, component: Component, ...props }) => {
     //Check if the route has adminRequired
+    const myToast = useRef(null);
     let isRequired = props.adminRequired ? true : false;
     const authContext = useContext(AuthContext);
     const { autenticado, cargando, usuario, usuarioAutenticado } = authContext;
@@ -34,6 +36,11 @@ const RutaPrivada = ({ path, exact = false, component: Component, ...props }) =>
             }
         }
     }, [usuario, cargando, user])
+
+    const showToast = (severityValue, summaryValue, detailValue) => {   
+        myToast.current.show({severity: severityValue, summary: summaryValue, detail: detailValue});   
+      }
+
     const fetchDataUser = async () => {
         await usuarioAutenticado();
     }
@@ -51,6 +58,9 @@ const RutaPrivada = ({ path, exact = false, component: Component, ...props }) =>
 
     return(
         <div>
+            <Toast 
+              ref={myToast}
+            />
             {
                 user === null && autenticado ? (<Loader />) : (
                     <Fragment>
@@ -60,6 +70,7 @@ const RutaPrivada = ({ path, exact = false, component: Component, ...props }) =>
                                 <Suspense>
                                 <Route 
                                 {... props}
+                                showToast={showToast}
                                 exact={exact}
                                 path={path}
                                 render={props=> !condicionAdmin() ?

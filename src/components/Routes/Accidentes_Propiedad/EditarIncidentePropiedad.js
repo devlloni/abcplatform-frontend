@@ -8,12 +8,13 @@ import { Editor } from 'primereact/editor';
 import { FileUpload } from 'primereact/fileupload';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
-
-const CargaIncidentePropiedad = (props) => {
-    console.log(props);
-    let history = useHistory();
+import { Types } from 'mongoose';
+const EditarIncidentePropiedad = () => {
+    const { ObjectId } = Types;
     const { id } = useParams();
+    let history = useHistory();
     const myToast = useRef(null);
+    const [ incidente, setIncidente ] = useState(null);
     const [ editando, setEditando ] = useState(false);
     const [ companies, setCompanies ] = useState(null);
     const [ sucursales, setSucursales ] = useState(null);
@@ -55,6 +56,11 @@ const CargaIncidentePropiedad = (props) => {
             setEditando(false);
         }else{
             setEditando(true);
+            if(ObjectId.isValid(id) && !incidente){
+                getIncidente(id);
+            }else{
+                history.push('/incidentes/propiedad');
+            }
         }
     }, [,editando,id])
 
@@ -66,7 +72,29 @@ const CargaIncidentePropiedad = (props) => {
 
     const getIncidente = async (id) => {
         const resp = await clienteAxios.get(`/incidentespropiedad/${id}`);
-        console.log(resp);
+        let incidenteDb = resp.data.incidente[0];
+        console.log('incidente db');
+        console.log(incidenteDb);
+        console.log('data form:');
+        console.log(dataForm);
+        if(incidenteDb){
+            setIncidente(incidenteDb);
+            setDataForm({
+                ...dataForm,
+                empresa: incidenteDb.compania,
+                sucursal: incidenteDb.sucursal,
+                lugar: incidenteDb.lugar,
+                sector: incidenteDb.sector,
+                titulo: incidenteDb.titulo,
+                tipoIncidente: incidenteDb.tipoIncidente,
+                gravedad: incidenteDb.gravedad,
+                investigacion: incidenteDb.investigacion
+            });
+            getSucursalesEmpresa(incidenteDb.compania);
+            getLugaresEmpresa(incidenteDb.compania);
+        }else{
+            history.push('/incidentes/propiedad');
+        }
     }
 
     const getCompanies = async () => {
@@ -133,13 +161,7 @@ const CargaIncidentePropiedad = (props) => {
             }
         else{
             const resp = await clienteAxios.post('/incidentespropiedad/', dataForm);
-            if(resp.status === 200 && resp.data.incidente){
-                showToast('success', '¡Perfecto!', 'Incidente a la propiedad cargado con éxito.');
-                history.push(`/incidentes/propiedad/${resp.data.incidente._id}`)
-
-            }else{
-                return showToast('warn', '¡Ooops!', 'Estamos enfrentando problemas en el servidor, intenta más tarde.');
-            }
+            console.log(resp.data);
         }
         setEnviado(true);
     }
@@ -320,7 +342,15 @@ const CargaIncidentePropiedad = (props) => {
                     <Button 
                         label='Guardar'
                         icon='pi pi-plus'
+                        disabled={true}
                         onClick={(e) => handleSubmitForm(e)}
+                        style={{width: '90%' ,marginLeft: '5%', marginRight: '5%', marginBottom: '2em'}}
+                    />
+                    <Button 
+                        label='Cancelar'
+                        icon='pi pi-times'
+                        className='button p-button-warning'
+                        onClick={(e) => history.push('/incidentes/')}
                         style={{width: '90%' ,marginLeft: '5%', marginRight: '5%', marginBottom: '2em'}}
                     />
                 </div>
@@ -331,4 +361,4 @@ const CargaIncidentePropiedad = (props) => {
 }
 
 
-export default CargaIncidentePropiedad;
+export default EditarIncidentePropiedad;
