@@ -9,6 +9,7 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import useWindowSize from '../../../hooks/useWindowSize';
 const AccidentesPropiedad = () => {
+    
     let history = useHistory();
 
     const myToast = useRef(null);
@@ -44,7 +45,7 @@ const AccidentesPropiedad = () => {
     }
 
     const newIncidente = () => {
-
+        return history.push('/incidentes/propiedad');
     }
 
     const editIncidente = e => {

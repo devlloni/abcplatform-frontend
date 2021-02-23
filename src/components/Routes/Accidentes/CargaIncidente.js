@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { localeEs } from '../../../helpers/locale';
 import { Tooltip } from 'primereact/tooltip'
 import { Button } from 'primereact/button';
@@ -11,6 +11,7 @@ import { ScrollPanel } from 'primereact/scrollpanel';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment';
 import styled from 'styled-components';
+import { Toast } from 'primereact/toast';
 
 const Divisor = styled.hr`
     margin-top: '1.5em';
@@ -32,7 +33,7 @@ const CargaIncidente = () => {
         numerosiniestro: '',
         fechadenuncia: '',
         fechaincidente: '',
-        horaaccidente: '',
+        horaincidente: '',
         gravedad: '',
         horaingreso: '',
         sector: '',
@@ -99,6 +100,11 @@ const CargaIncidente = () => {
         
     }, []);
 
+    const myToast = useRef(null);
+    const showToast = (severityValue, summaryValue, detailValue) => {   
+    myToast.current.show({severity: severityValue, summary: summaryValue, detail: detailValue});   
+  }
+
     //!Funcs
     const getEmpleados = async () => {
         const resp = await clienteAxios.get('/usuarios/empleados');
@@ -149,6 +155,17 @@ const CargaIncidente = () => {
         }
         // setLugares(dataLugares);
         // setPuestos(dataPuestos);
+    }
+
+    const postNewIncidente = async e => {
+        e.preventDefault();
+        //!Validaciones
+
+        const resp = await clienteAxios.post('/incidentespersona/', dataForm);
+        if(resp.status === 200){
+            console.log(resp.data);
+            return showToast('success', '¡Exito!', `La incidencia a ${dataForm.nombre} fué cargada con éxito.`);
+        }
     }
 
     const getGeneralData = async () => {
@@ -217,6 +234,25 @@ const CargaIncidente = () => {
         }
     }
     
+    const onChangeFechaAlta = e => {
+        if(e.value && dataForm.fechaincidente){
+            let fechaAlta = moment(e.value);
+            let fechaAccidente = moment(dataForm.fechaincidente);
+            // let diferencia = fechaAccidente.diff(fechaAlta, 'days');
+            let diferencia = fechaAlta.diff(fechaAccidente, 'days');
+            setDataForm({
+                ...dataForm,
+                fechaalta: e.value,
+                diasbaja: diferencia
+            });
+        }else if(e.value){
+            setDataForm({
+                ...dataForm,
+                fechaalta: e.value
+            });
+        }
+    }
+
     const restartDataGral = () => {
         setCompania(null);
         setSucursal(null);
@@ -296,7 +332,8 @@ const CargaIncidente = () => {
                 ...dataForm,
                 diasbaja: diferencia
             });
-            return diferencia;
+            console.log(diferencia);
+            //return diferencia;
         }
 
         return ''
@@ -488,15 +525,15 @@ const CargaIncidente = () => {
                 {formEnviado && !dataForm.fechaincidente ? <small style={{color: 'red'}}>La fecha del incidente es obligatoria.</small> : ''}
             </div>
             <div className='p-sm-4 p-col-12'>
-                <label htmlFor='horaaccidente'>Hora del accidente</label>
+                <label htmlFor='horaincidente'>Hora del accidente</label>
                 <InputText 
-                    value={dataForm.horaaccidente}
-                    onChange={(e) => setDataForm({...dataForm, horaaccidente: e.target.value})}
+                    value={dataForm.horaincidente}
+                    onChange={(e) => setDataForm({...dataForm, horaincidente: e.target.value})}
                     placeholder="Hora del accidente"
                     type='time'
-                    name='horaaccidente'
+                    name='horaincidente'
                 />
-                {formEnviado && !dataForm.horaaccidente ? <small style={{color: 'red'}}>La hora del incidente es obligatoria.</small> : ''}
+                {formEnviado && !dataForm.horaincidente ? <small style={{color: 'red'}}>La hora del incidente es obligatoria.</small> : ''}
             </div>
             <div className='p-sm-4 p-col-12'>
                 <label htmlFor='lugares'>Seleccione lugar</label>
@@ -621,7 +658,7 @@ const CargaIncidente = () => {
                     locale={localeEs}
                     dateFormat='dd/mm/yy'
                     value={dataForm.fechaalta}
-                    onChange={(e)=> setDataForm({...dataForm, fechaalta: e.value})}
+                    onChange={(e)=> onChangeFechaAlta(e)}
                     name='fechaalta'
                 />
                 {formEnviado && !dataForm.fechaalta ? <small style={{color: 'red'}}>La fecha de alta es obligatoria.</small> : ''}
@@ -629,7 +666,7 @@ const CargaIncidente = () => {
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='diasbaja'>Dias de baja</label>
                 <InputText 
-                    value={getDifFechas()}
+                    value={dataForm.diasbaja}
                     // disabled={true}
                     onChange={(e)=> e.preventDefault()}
                     // onChange={(e)=> setDataForm({...dataForm, fechaalta: e.value})}
@@ -755,6 +792,9 @@ const CargaIncidente = () => {
 
     return ( 
         <div className='p-mt-4'>
+            <Toast 
+                ref={myToast}
+            />
             <div className='p-text-center'><h4>Incidentes de Persona</h4></div>
             <ScrollPanel>
             <div className='p-mt-3 card'>
@@ -810,7 +850,10 @@ const CargaIncidente = () => {
                                 label='Guardar'
                                 icon='pi pi-save'
                                 className='p-button-primary'
-                                onClick={(e) => setFormEnviado(true)}
+                                onClick={(e) => {
+                                    setFormEnviado(true)
+                                    postNewIncidente(e);
+                                }}
                             />
                         </div>
                     </div>

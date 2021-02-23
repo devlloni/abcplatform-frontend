@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import clienteAxios from '../../../config/clienteAxios';
+import { getPathname } from '../../../config/breadcrumb';
+import { useLocation} from 'react-router-dom';
 import { useParams, useHistory } from 'react-router-dom'
 import { ScrollPanel } from 'primereact/scrollpanel';
 import { Dropdown } from 'primereact/dropdown';
@@ -9,7 +11,12 @@ import { FileUpload } from 'primereact/fileupload';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { Types } from 'mongoose';
+import { BreadCrumb } from 'primereact/breadcrumb'
+
 const EditarIncidentePropiedad = () => {
+    const location = useLocation();
+    
+    console.log(location);
     const { ObjectId } = Types;
     const { id } = useParams();
     let history = useHistory();
@@ -42,6 +49,10 @@ const EditarIncidentePropiedad = () => {
         {label: 'Mayor', value: 'Mayor'},
         {label: 'Catastrófico', value: 'Catastrofico'}
     ])
+    const itemsBread = [
+        {label: 'Incidentes', url: `${getPathname()}/incidentes`},
+        {label: 'Editar incidente'}
+    ];
     useEffect(()=>{
         if(!companies){
             getCompanies()
@@ -320,6 +331,8 @@ const EditarIncidentePropiedad = () => {
     }
 
     return(
+        <div>
+            <BreadCrumb model={itemsBread} home={{icon: 'pi pi-home', url: `${getPathname()}/`}} />
         <div className='p-mt-4'>
             <div className='p-text-center'>
                 {editando ? <h5>Editando incidente {dataForm.titulo}</h5> : <h5>Carga de incidente a la propiedad/ambiente</h5>}
@@ -356,6 +369,7 @@ const EditarIncidentePropiedad = () => {
                 </div>
                 {renderBlankSpace}
             </ScrollPanel>
+        </div>
         </div>
     )
 }
