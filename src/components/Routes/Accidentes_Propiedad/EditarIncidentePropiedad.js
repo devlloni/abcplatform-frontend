@@ -15,7 +15,7 @@ import { BreadCrumb } from 'primereact/breadcrumb'
 
 const EditarIncidentePropiedad = () => {
     const location = useLocation();
-    
+    //
     console.log(location);
     const { ObjectId } = Types;
     const { id } = useParams();
