@@ -1,20 +1,20 @@
 import React from 'react';
 import { Toast } from 'primereact/toast';
 import { TabMenu } from 'primereact/tabmenu';
-import OldHome from './Home';
-import Inicio from './Inicio';
-import AgentesMateriales from './AgentesMateriales';
-import CausasBasicas from './CausasBasicas';
-import CausasGestion from './CausasGestion';
-import CausasInmediatas from './CausasInmediatas';
-import Formas from './Formas';
-import NaturalezaLesion from './NaturalezaLesion';
-import ZonasAfectadas from './ZonasAfectadas';
+import OldHome from './oldHome';
+import Inicio from './CargaIncidente';
+import AgentesMateriales from './Configuraciones/AgentesMateriales';
+import CausasBasicas from './Configuraciones/CausasBasicas';
+import CausasGestion from './Configuraciones/CausasGestion';
+import CausasInmediatas from './Configuraciones/CausasInmediatas';
+import Formas from './Configuraciones/Formas';
+import NaturalezaLesion from './Configuraciones/NaturalezaLesion';
+import ZonasAfectadas from './Configuraciones/ZonasAfectadas';
 
 const AccidentesPersona = () => {
 
     const [ items, setItems ] = React.useState([
-        {label: 'Inicio', icon: 'pi pi-fw pi-home', component: 'Home'},
+        // {label: 'Inicio', icon: 'pi pi-fw pi-home', component: 'Home'},
         {label: 'Formas', icon: 'fas fa-digital-tachograph', component: 'Formas'},
         {label: 'Agentes Materiales', icon: 'fas fa-list', component: 'AgentesMateriales'},
         {label: 'Nat. Lesión', icon: 'fas fa-file-medical-alt', component: 'NaturalezaLesion'},
@@ -51,7 +51,7 @@ const AccidentesPersona = () => {
                 return <ZonasAfectadas showToast={showToast} />
             default:
                 // return <OldHome showToast={showToast} setActiveItem={setActiveItem} />
-                return <Inicio showToast={showToast} setActiveItem={setActiveItem} />
+                return <Formas showToast={showToast} setActiveItem={setActiveItem} />
         }
     }
 

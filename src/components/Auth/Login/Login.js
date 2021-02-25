@@ -24,11 +24,11 @@ const Login = (props) => {
     const { mensaje, autenticado, iniciarSesion, usuarioAutenticado } = authContext;
  
     // Effect de autenticacion
-    useEffect( ()=>{
-        if(autenticado){
-            props.history.push('/');
-        }
-    }, [ autenticado, props.history] );
+        useEffect( ()=>{
+            if(autenticado){
+                props.history.push('/');
+            }
+        }, [ autenticado, props.history] );
 
     // States & Hooks
     const [ submitLogin, setSubmitLogin ] = useState(false);

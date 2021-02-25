@@ -7,8 +7,8 @@ import { InputText } from 'primereact/inputtext'
 import { Column } from 'primereact/column';
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { Dialog } from "primereact/dialog";
-import useWindowSize from '../../../hooks/useWindowSize';
-import clienteAxios from '../../../config/clienteAxios';
+import useWindowSize from '../../../../hooks/useWindowSize';
+import clienteAxios from '../../../../config/clienteAxios';
 
 const Formas = ({showToast}) => {
 
