@@ -4,7 +4,8 @@ import { Toast } from 'primereact/toast';
 //Prueba. Story/1/Fix
 //!Styles
 import './assets/css/materialize.css';
-import 'primereact/resources/themes/mdc-light-indigo/theme.css';
+// import 'primereact/resources/themes/mdc-light-indigo/theme.css';
+import 'primereact/resources/themes/nova-alt/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'primeflex/primeflex.css';
@@ -33,8 +34,9 @@ import Puestos from './components/Routes/Puestos/Puestos';
 //*Incidentes [GENERAL - VISTAS]
 import AccidentesVista from './components/Routes/AccidentesVista';
 //*Incidentes [PERSONA] config.
-import AccidentesHome from './components/Routes/Accidentes/AccidentesHome';
-import CargaIncidente from './components/Routes/Accidentes/CargaIncidente';
+import AccidentesHome from './components/Routes/Accidentes_Persona/AccidentesHome';
+import CargaIncidente from './components/Routes/Accidentes_Persona/CargaIncidente';
+import EditarIncidente from './components/Routes/Accidentes_Persona/EditarIncidente';
 //*[PROPIEDAD]
 import CargaIncidentePropiedad from './components/Routes/Accidentes_Propiedad/CargaIncidente';
 import EditarIncidentePropiedad from './components/Routes/Accidentes_Propiedad/EditarIncidentePropiedad';
@@ -80,6 +82,7 @@ function App() {
             <RutaPrivada path='/puestostrabajo' exact component={Puestos} adminRequired={4} />
             <RutaPrivada path='/incidentes' exact component={AccidentesVista} />
             <RutaPrivada path='/incidentes/persona' exact component={CargaIncidente} />
+            <RutaPrivada path='/incidentes/persona/:id' exact component={EditarIncidente} />
             <RutaPrivada path='/incidentes/propiedad' exact component={CargaIncidentePropiedad} showToast={showToast} />
             <RutaPrivada path='/incidentes/propiedad/:id' exact component={EditarIncidentePropiedad} />
             <RutaPrivada path='/incidentes/persona/configuraciones' exact component={AccidentesHome} />

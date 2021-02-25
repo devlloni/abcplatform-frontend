@@ -7,14 +7,14 @@ import { InputText } from 'primereact/inputtext'
 import { Column } from 'primereact/column';
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { Dialog } from "primereact/dialog";
-import useWindowSize from '../../../hooks/useWindowSize';
-import clienteAxios from '../../../config/clienteAxios';
+import useWindowSize from '../../../../hooks/useWindowSize';
+import clienteAxios from '../../../../config/clienteAxios';
 
-const CausasGestion = ({showToast}) => {
+const ZonasAfectadas = ({showToast}) => {
 
     //? General Component Configs
-    const PAGE_NAME = 'Causas Gestión'
-    const TEMPLATE_NAME = 'Causa gestión'
+    const PAGE_NAME = 'Zonas afectadas'
+    const TEMPLATE_NAME = 'Zona afectada'
 
     const myToast = React.useRef(null);
     const {  width } = useWindowSize();
@@ -24,14 +24,13 @@ const CausasGestion = ({showToast}) => {
     const [ globalFilter, setGlobalFilter ] = React.useState('');
     const [ showDialog, setShowDialog ] = React.useState(false);
     const [ formData, setFormData ] = React.useState({
-        nombrecausasgestion: '',
+        nombrezonacuerpo: '',
         _id: ''
     });
-    const { nombrecausasgestion, _id } = formData;
+    const { nombrezonacuerpo, _id } = formData;
 
     //* --------- FUNCTIONS & HOOKS -------- */
-
-    React.useEffect( ()=>{
+    React.useEffect( ()=> {
         if(!data){
             getData();
         }
@@ -39,7 +38,7 @@ const CausasGestion = ({showToast}) => {
 
     const reiniciarData = () => {
         setFormData({
-            nombrecausasgestion: '',
+            nombrezonacuerpo: '',
             _id: ''
         });
     }
@@ -57,60 +56,58 @@ const CausasGestion = ({showToast}) => {
         setFormData(rawData);
         setShowDialog(true);
     }
-
     const getData = async () => {
-        const resp = await clienteAxios.get('/generaldata/causasgestion');
-        setData(resp.data.causasgestion);
+        const resp = await clienteAxios.get('/generaldata/zonacuerpoafectada');
+        setData(resp.data.zonacuerpoafectada);
     }
     const handleEdit = async () => {
-        const resp = await clienteAxios.post('/generaldata/causasgestion/edit', formData);
+        const resp = await clienteAxios.post('/generaldata/zonacuerpoafectada/edit', formData);
         if(resp.status === 200){
             setShowDialog(false);
             reiniciarData();
-            getData();
-            return showToast('success', '¡Genial!', 'Editado con éxito.');
+            getData()
+            return showToast('success', '¡Genial!', 'Editado con éxito');
         }else{
             return showToast('error', '¡Oops!', 'Ocurrió un error en el servidor');
         }
     }
     const handleNewData = async () => {
-        if(nombrecausasgestion && nombrecausasgestion.length > 4){
+        if(nombrezonacuerpo && nombrezonacuerpo.length > 4 ){
             if(formData._id){
                 return handleEdit();
             }else{
-                const resp = await clienteAxios.post('/generaldata/causasgestion', {
-                    nombrecausasgestion: formData.nombrecausasgestion
+                const resp = await clienteAxios.post('/generaldata/zonacuerpoafectada', {
+                    nombrezonacuerpo: formData.nombrezonacuerpo
                 });
                 if(resp.status === 200){
                     if(resp.data.code === 1){
                         reiniciarData();
                         setShowDialog(false);
                         getData();
-                        return showToast('success', '¡Perfecto!','¡Genial! La causa fué cargado con éxito.', )
+                        return showToast('success', '¡Perfecto!','¡Genial! La zona fué cargada con éxito.', )
                     }else{
                         reiniciarData();
                         setShowDialog(false);
                         return showToast('error', '¡Ooops!', resp.data.msg )
                     }
                 }else{
-                    return showToast('error', '¡Oops!', 'Ocurrió un error en el servidor.');
+                    return showToast('error', '¡Oops!', 'Ocurrió un error inesperado, por favor, comunicarlo a un webmaster.');
                 }
             }
         }else{
-            return showToast('error', '¡Ooops!', 'Completa todos los campos.');
+            showToast('error', '¡Oops!', 'Complete todos los campos.');
         }
-    } 
-    const handleDelete = async (rawdata) => {
+    }
+
+    const handleDelete = async rawdata => {
         if(rawdata._id && rawdata._id.length > 0){
-            const resp = await clienteAxios.post('/generaldata/causasgestion/delete', {id: rawdata._id});
+            const resp = await clienteAxios.post('/generaldata/zonacuerpoafectada/delete', { id : rawdata._id });
             if(resp.status === 200){
                 getData();
-                return showToast('success', 'Perfecto!', `['${rawdata.nombrecausasbasicas}]' eliminado con éxito.`)
-            }else{
-                return showToast('error', '¡Error!', 'Lo sentimos, ocurrió un error en el servidor.');
+                return showToast('success', '¡Perfecto!', `'[${rawdata.nombrezonacuerpo}]' eliminado con éxito.`);
             }
         }
-    } 
+    }
     //* ---------  RENDER COMPONENTS -------- */
 
     const RenderToolbar = () => {
@@ -150,7 +147,7 @@ const CausasGestion = ({showToast}) => {
 
     const TableHeader = (
         <div className="table-header">
-                Contenido de causas de gestión cargadas
+                Contenido de zonas afectadas cargadas
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Filtros globales" />
@@ -162,7 +159,7 @@ const CausasGestion = ({showToast}) => {
         return(
             <React.Fragment>
                 <span className='p-column-title'></span>
-                {rawData.nombrecausasgestion}
+                {rawData.nombrezonacuerpo}
             </React.Fragment>
         )
     }
@@ -215,8 +212,8 @@ const CausasGestion = ({showToast}) => {
                     paginator rows={4} header={TableHeader}
                     globalFilter={globalFilter}
                  >
-                    <Column field="nombrecausasgestion" header="Nombre de la causa" body={Column1BodyTemplate}
-                        filter={true} filterPlaceholder={'Buscar por nombre'}
+                    <Column field="nombrezonacuerpo" header="Nombre Zona" body={Column1BodyTemplate}
+                        filter={true} filterPlaceholder={'Buscar por Nombre'}
                     />
                     <Column field="_id" header="ID" body={Column2BodyTemplate}
                         filter={true} filterPlaceholder={'Buscar por ID'}
@@ -240,27 +237,27 @@ const CausasGestion = ({showToast}) => {
                     <div className='p-grid p-fluid'>
                         <div className='p-col-12'>
                             <InputText 
-                                value={formData.nombrecausasgestion}
-                                name='nombrecausasgestion'
-                                id='nombrecausasgestion'
-                                className={classNames({ 'p-invalid': enviado && !formData.nombrecausasgestion })}
+                                value={formData.nombrezonacuerpo}
+                                name='nombrezonacuerpo'
+                                id='nombrezonacuerpo'
+                                className={classNames({ 'p-invalid': enviado && !formData.nombrezonacuerpo })}
                                 onChange={(e) => onInputChange(e)}
-                                placeholder="Campo1"
+                                placeholder="Nombre zona cuerpo"
                             />
-                            {enviado && !nombrecausasgestion && <small className="p-invalid">El nombre es obligatorio.</small>}
+                            {enviado && !nombrezonacuerpo && <small className="p-invalid">El nombre de la zona es obligatorio.</small>}
                         </div>
                     </div>
                     <div className='p-grid p-fluid'>
                         <div className='p-col-12'>
                             <InputText 
                                 value={formData._id}
-                                name="_id"
                                 disabled={true}
-                                placeholder="ID"
+                                name="_id"
+                                placeholder="_id"
                                 className={classNames({ 'p-invalid': enviado && !_id })}
                                 onChange={(e) => onInputChange(e)}
                             />
-                            {enviado && !_id && <small className="p-invalid">La ID es obligatorio.</small>}
+                            {/* {enviado && !_id && <small className="p-invalid"> es obligatorio.</small>} */}
                         </div>
                     </div>
                 </Dialog>
@@ -271,4 +268,4 @@ const CausasGestion = ({showToast}) => {
     );
 }
  
-export default CausasGestion;
+export default ZonasAfectadas;

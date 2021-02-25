@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { localeEs } from '../../../helpers/locale';
 import { Tooltip } from 'primereact/tooltip'
 import { Button } from 'primereact/button';
+import { useLocation, useParams, useHistory } from 'react-router-dom';
 import { AutoComplete } from 'primereact/autocomplete';
 import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
@@ -12,6 +13,8 @@ import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment';
 import styled from 'styled-components';
 import { Toast } from 'primereact/toast';
+import { Types } from 'mongoose';
+import { Fieldset } from 'primereact/fieldset';
 
 const Divisor = styled.hr`
     margin-top: '1.5em';
@@ -19,8 +22,12 @@ const Divisor = styled.hr`
     color: black;
 `;
 
-const CargaIncidente = () => {
-
+const EditarIncidente = () => {
+    const location = useLocation();
+    //
+    const { ObjectId } = Types;
+    const { id } = useParams();
+    let history = useHistory();
     const [ sucursal, setSucursal ] = useState('');
     const [ dataForm, setDataForm ] = useState({
         nombre: '',
@@ -49,8 +56,14 @@ const CargaIncidente = () => {
         zonacuerpo: '',
         fechaalta: '',
         diasbaja: '',
-        codigo: ''
+        codigo: '',
+        titulo: '', //Story/ABC-22
+        investigacion: ''
+
     });
+    const [ incidente, setIncidente ] = useState(null);
+    const [ editando, setEditando ] = useState(false);
+    const [ sucursales, setSucursales ] = useState(null);
     const [ selectedEmpleado, setSelectedEmpleado ] = useState(null);
     const [ empleados, setEmpleados ] = useState(null);
     const [ companias, setCompanias ] = useState(null);
@@ -97,13 +110,64 @@ const CargaIncidente = () => {
         if(!formas || !naturalezaLesion || !agentesMateriales || !zonaCuerpo){
             getGeneralData();
         }
-        
-    }, []);
+        if(empleados && incidente){
+            let empleado = empleados.find(em => em._id === incidente._id);
+            // let empleadoName = empleado.nombre + ' ' + empleado.apellido;
+            // setDataForm({
+            //     ...dataForm,
+            //     nombre: empleadoName
+            // });
+            console.log(empleados);
+            console.log(empleado);
+        }
+    }, [, empleados, incidente]);
+
+    //! GET IF IS EDITING OR CREATING NEW
+
+    useEffect(()=>{
+        if(!id || id === undefined || id === null){
+            setEditando(false);
+        }else{
+            setEditando(true);
+            if(ObjectId.isValid(id) && !incidente){
+                getIncidente(id);
+            }else{
+                history.push('/incidentes/persona');
+            }
+        }
+    }, [, editando, id]);
 
     const myToast = useRef(null);
     const showToast = (severityValue, summaryValue, detailValue) => {   
     myToast.current.show({severity: severityValue, summary: summaryValue, detail: detailValue});   
   }
+    const getIncidente = async id => {
+        const resp = await clienteAxios.get(`/incidentespersona/${id}`);
+        let incidenteDb = resp.data.incidente[0];
+        if(incidenteDb){
+            console.log('dias baja: ', incidenteDb.diasbaja);
+            setIncidente(incidenteDb);
+            getSucursalesEmpresa(incidenteDb.compania);
+            if(incidenteDb.usuario !== null && incidenteDb.usuario !== undefined){
+                getEmpleadoAndCompanie(incidenteDb.usuario);
+            }
+        }
+    }
+
+    const getEmpleadoAndCompanie = async empleado => {
+        if(!empleado) return;
+        let resp = await clienteAxios.get(`/empleados/${empleado}`);
+        if(resp.data.length > 0){
+            let e = resp.data[0];
+            e.nombreCompleto = `${e.nombre} ${e.apellido}`;
+            let companies = await getCompanies(); 
+            if(companies.length > 0){
+                onChangeEmpleado(e, companies);
+                setSelectedEmpleado(e);
+            }
+            // onChangeEmpleado(e);
+        }
+    }
 
     //!Funcs
     const getEmpleados = async () => {
@@ -117,6 +181,20 @@ const CargaIncidente = () => {
     const getCompanies = async () => {
         const resp = await clienteAxios.get('/companias');
         setCompanias(resp.data)
+        return resp.data;
+    }
+    const getSucursalesEmpresa = async (id) => {
+        const resp = await clienteAxios.get(`/branchoffices/companie/${id}`);
+        let sucursales = resp.data.branchoffices;
+        if(sucursales.length > 0){
+            let sucursalesData = [];
+            for(let i = 0; i < sucursales.length; i++){
+                sucursalesData.push({label: sucursales[i].nombre, value: sucursales[i]._id});
+            }
+            setSucursales(sucursalesData);
+        }else{
+            return;
+        }
     }
 
     const getSucursal = async (companieId) => {
@@ -131,7 +209,7 @@ const CargaIncidente = () => {
         let puestos = allResp.puestos[0];
         let lugares = allResp.lugares[0];
         let sectores = allResp.sectores[0];
-        console.log(allResp);
+        // console.log(allResp);
         let dataPuestos = [];
         if(allResp.puestos.length > 0){
             for(let i = 0; i < puestos.length; i++){
@@ -163,7 +241,7 @@ const CargaIncidente = () => {
 
         const resp = await clienteAxios.post('/incidentespersona/', dataForm);
         if(resp.status === 200){
-            console.log(resp.data);
+            // console.log(resp.data);
             return showToast('success', '¡Exito!', `La incidencia a ${dataForm.nombre} fué cargada con éxito.`);
         }
     }
@@ -267,14 +345,17 @@ const CargaIncidente = () => {
         });
     }
 
-    const onChangeEmpleado = async empleado => {
-        if(!companias || !empleado){
-            console.log(empleado);
+    const onChangeEmpleado = async ( empleado, companies ) => {
+        if(!companies || !empleado){
+            console.log('empleado: ', empleado);
+            console.log('compania: ', compania )
+            // console.log(empleado);
             return;
         }
         else{
+            
             if(typeof(empleado) === 'object'){
-                console.log(empleado);
+                console.log('el nombre completo es ', empleado.nombreCompleto)
                 setDataForm({
                     ...dataForm,
                     usuario: empleado._id,
@@ -282,7 +363,7 @@ const CargaIncidente = () => {
                     compania: empleado.compania
                 })
                  //!Handle companie
-                let companiaSeleccionada = companias.filter(comp=>{
+                let companiaSeleccionada = companies.filter(comp=>{
                     return comp._id === empleado.compania
                 });
                 if(companiaSeleccionada.length>0){
@@ -352,7 +433,7 @@ const CargaIncidente = () => {
                                 name='nombreyapellido'
                                 itemTemplate={itemTemplate}
                                 value={selectedEmpleado}
-                                onChange={(e)=> handleEmpleadoChange(e)}
+                                onChange={(e)=> {handleEmpleadoChange(e);}}
                                 field='nombreCompleto'
                                 suggestions={filteredEmpleados}
                                 completeMethod={searchEmpleado}
@@ -438,7 +519,7 @@ const CargaIncidente = () => {
                     placeholder='Tipo de denuncia'
                     name='denuncia'
                     options={denunciasConfig}
-                    value={dataForm.denuncia}
+                    value={ incidente ? incidente.denuncia : ''}
                     onChange={(e)=>{
                         setDataForm({
                             ...dataForm,
@@ -454,7 +535,7 @@ const CargaIncidente = () => {
                     placeholder='Tipo de accidente'
                     name='tipo'
                     options={clasificacionConfig}
-                    value={dataForm.tipo}
+                    value={ incidente ? incidente.tipo : ''}
                     onChange={(e)=>{
                         setDataForm({
                             ...dataForm,
@@ -482,7 +563,7 @@ const CargaIncidente = () => {
                     disabled={ dataForm.fechaincidente ? false : true }
                     locale={localeEs}
                     minDate={ dataForm.fechaincidente }
-                    value={dataForm.fechadenuncia}
+                    value={ incidente ? incidente.fechadenuncia : ''}
                     onChange={(e) => setDataForm({
                         ...dataForm,
                         fechadenuncia: e.value
@@ -495,7 +576,7 @@ const CargaIncidente = () => {
                 <label htmlFor='numerosiniestro'>Nro. de siniestro</label>
                 <InputText 
                     name='numerosiniestro'
-                    value={dataForm.numerosiniestro}
+                    value={ incidente ? incidente.numerosiniestro : ''}
                     onChange={(e)=> {
                         setDataForm({
                             ...dataForm,
@@ -519,7 +600,7 @@ const CargaIncidente = () => {
                     name='fechaincidente'
                     dateFormat='dd/mm/yy'
                     locale={localeEs}
-                    value={dataForm.fechaincidente}
+                    value={ incidente ? new Date(incidente.fechaincidente) : ''}
                     onChange={(e)=>setDataForm({...dataForm, fechaincidente: e.value})}
                 />
                 {formEnviado && !dataForm.fechaincidente ? <small style={{color: 'red'}}>La fecha del incidente es obligatoria.</small> : ''}
@@ -527,7 +608,7 @@ const CargaIncidente = () => {
             <div className='p-sm-4 p-col-12'>
                 <label htmlFor='horaincidente'>Hora del accidente</label>
                 <InputText 
-                    value={dataForm.horaincidente}
+                    value={ incidente ? incidente.horaincidente : ''}
                     onChange={(e) => setDataForm({...dataForm, horaincidente: e.target.value})}
                     placeholder="Hora del accidente"
                     type='time'
@@ -539,7 +620,7 @@ const CargaIncidente = () => {
                 <label htmlFor='lugares'>Seleccione lugar</label>
                 <Dropdown 
                     name='lugares'
-                    value={dataForm.lugar}
+                    value={ incidente ? incidente.lugar : ''}
                     options={lugares}
                     disabled={ lugares ? false : true}
                     onChange={(e)=> setDataForm({...dataForm, lugar: e.value})}
@@ -557,7 +638,7 @@ const CargaIncidente = () => {
                     placeholder='Tipo de gravedad'
                     name='gravedad'
                     options={gravedadConfig}
-                    value={dataForm.gravedad}
+                    value={ incidente ? incidente.gravedad : ''}
                     onChange={(e)=>{
                         setDataForm({
                             ...dataForm,
@@ -572,7 +653,7 @@ const CargaIncidente = () => {
                 <InputText 
                     type='time'
                     name='horaingreso'
-                    value={dataForm.horaingreso}
+                    value={ incidente ? incidente.horaingreso : ''}
                     onChange={(e)=>setDataForm({...dataForm, horaingreso: e.target.value})}
                     placeholder="Hora de ingreso"
                 />
@@ -582,7 +663,7 @@ const CargaIncidente = () => {
                         <label htmlFor='sector'>Seleccione sector</label>
                         <Dropdown 
                             name='sector'
-                            value={dataForm.sector}
+                            value={ incidente ? incidente.sector : ''}
                             options={sectores}
                             disabled={ sectores ? false : true}
                             onChange={(e)=> setDataForm({...dataForm, sector: e.value})}
@@ -599,7 +680,7 @@ const CargaIncidente = () => {
                 <label htmlFor='turno'>Turno</label>
                 <InputText 
                     tooltip='Turno del empleado'
-                    value={dataForm.turno}
+                    value={ incidente ? incidente.turno : ''}
                     onChange={(e)=> setDataForm({...dataForm, turno: e.target.value})}
                     placeholder='Turno del empleado'
                     name='turno'
@@ -610,7 +691,7 @@ const CargaIncidente = () => {
                 <label htmlFor='jefeacargo'>Jefe a cargo</label>
                 <InputText 
                     tooltip='Jefe a cargo del empleado'
-                    value={dataForm.jefeacargo}
+                    value={ incidente ? incidente.jefeacargo : ''}
                     onChange={(e)=> setDataForm({...dataForm, jefeacargo: e.target.value})}
                     placeholder='Jefe a cargo'
                     name='jefeacargo'
@@ -621,7 +702,7 @@ const CargaIncidente = () => {
                 <label htmlFor='testigos'>Testigos</label>
                 <InputText 
                     tooltip='Testigos del accidente'
-                    value={dataForm.testigos}
+                    value={ incidente ? incidente.testigos : ''}
                     onChange={(e)=> setDataForm({...dataForm, testigos: e.target.value})}
                     placeholder='Testigos'
                     name='testigos'
@@ -631,7 +712,7 @@ const CargaIncidente = () => {
             <div className='p-sm-1 p-col-6'>
                 <label htmlFor='estabaenpuesto'>¿Era su puesto?</label>
                 <Dropdown 
-                    value={dataForm.estabaenpuesto}
+                    value={ incidente ? incidente.estabaenpuesto : ''}
                     onChange={(e)=> setDataForm({...dataForm, estabaenpuesto: e.value})}
                     options={sinoConfig}
                     name='estabaenpuesto'
@@ -640,7 +721,7 @@ const CargaIncidente = () => {
             <div className='p-sm-2 p-col-6'>
                 <label htmlFor='trabajohabitual'>¿Trabajo habitual?</label>
                 <Dropdown 
-                    value={dataForm.trabajohabitual}
+                    value={ incidente ? incidente.trabajohabitual : ''}
                     onChange={(e)=> setDataForm({...dataForm, trabajohabitual: e.value})}
                     options={sinoConfig}
                     name='trabajohabitual'
@@ -657,7 +738,7 @@ const CargaIncidente = () => {
                 <Calendar 
                     locale={localeEs}
                     dateFormat='dd/mm/yy'
-                    value={dataForm.fechaalta}
+                    value={ incidente ? new Date(incidente.fechaalta) : ''}
                     onChange={(e)=> onChangeFechaAlta(e)}
                     name='fechaalta'
                 />
@@ -666,7 +747,7 @@ const CargaIncidente = () => {
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='diasbaja'>Dias de baja</label>
                 <InputText 
-                    value={dataForm.diasbaja}
+                    value={ incidente ? incidente.diasbaja : ''}
                     // disabled={true}
                     onChange={(e)=> e.preventDefault()}
                     // onChange={(e)=> setDataForm({...dataForm, fechaalta: e.value})}
@@ -678,14 +759,15 @@ const CargaIncidente = () => {
                 <Dropdown 
                     value={dataForm.recalificacion}
                     options={sinoConfig}
+                    value={ incidente ? incidente.recalificacion : ''}
                     onChange={(e)=> setDataForm({...dataForm, recalificacion: e.value})}
                     name='recalificacion'
                 />
                 {formEnviado && !dataForm.recalificacion ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
             </div>
             <div className='p-sm-3 p-col-12'>
-                <label htmlFor='enviarmail'>¿Enviar mail a responsables de la empresa?</label>
-                <InputSwitch 
+                {/* <label htmlFor='enviarmail'>¿Enviar mail a responsables de la empresa?</label>
+                 <InputSwitch 
                     style={{
                         position: 'absolute',
                         marginTop: '3%',
@@ -701,7 +783,7 @@ const CargaIncidente = () => {
                     marginRight: '40%',
                     fontSize: '1em',
                     fontWeight: '500'
-                }}>{ enviarMail ? 'Si' : 'No' }</div>
+                }}>{ enviarMail ? 'Si' : 'No' }</div> */}
             </div>
         </div>
     );
@@ -711,7 +793,7 @@ const CargaIncidente = () => {
             <div className='p-sm-5 p-col-12'>
                 <label htmlFor='forma'>Forma</label>
                 <Dropdown 
-                    value={dataForm.forma}
+                   value={ incidente ? incidente.forma : ''}
                     options={formas}
                     onChange={(e)=> setDataForm({
                         ...dataForm,
@@ -725,7 +807,7 @@ const CargaIncidente = () => {
             <div className='p-sm-5 p-col-12'>
                 <label htmlFor='agentematerial'>Agente Material</label>
                 <Dropdown 
-                    value={dataForm.agentematerial}
+                    value={ incidente ? incidente.agentematerial : ''}
                     options={agentesMateriales}
                     onChange={(e)=> setDataForm({
                         ...dataForm,
@@ -766,7 +848,7 @@ const CargaIncidente = () => {
                     <Dropdown 
                         name='naturaleza'
                         options={naturalezaLesion}
-                        value={dataForm.naturaleza}
+                        value={ incidente ? incidente.naturaleza : ''}
                         onChange={(e) => setDataForm({... dataForm, naturaleza: e.value})}
                     />
                 </div>
@@ -775,7 +857,7 @@ const CargaIncidente = () => {
                     <Dropdown 
                         name='zonacuerpo'
                         options={zonaCuerpo}
-                        value={dataForm.zonacuerpo}
+                        value={ incidente ? incidente.zonacuerpo : ''}
                         onChange={(e) => setDataForm({... dataForm, zonacuerpo: e.value})}
                     />
                 </div>
@@ -795,52 +877,56 @@ const CargaIncidente = () => {
             <Toast 
                 ref={myToast}
             />
-            <div className='p-text-center'><h4>Incidentes de Persona</h4></div>
+            <div className='p-text-center'><h4>Incidente de persona</h4></div>
             <ScrollPanel>
-            <div className='p-mt-3 card'>
+            <Fieldset legend='Información de la persona' toggleable>
                 {renderFirstLineUser}
                 {renderSecondLineUser}
-            </div>
+            </Fieldset>
 
             <div className='p-mt-3 card'>
-                <div className='p-text-center'><h6 style={{paddingTop: '1em', fontSize: '1.3em', color: 'black'}}>Datos</h6></div>
-                <hr style={{marginTop: '1.5em', marginBottom: '1.5em'}}/>
-                <div className='p-text-left p-ml-3 p-mb-2'> General </div>
-                
+                <Fieldset legend='General' toggleable>
                     {renderFirstLine}
 
                     {renderSecondLine}
-        
-                    <hr style={{marginTop: '1.5em'}}/>
-                <div className='p-text-left p-ml-3 p-mb-2 p-mt-3'> Accidente </div>
-
+                </Fieldset>
+                <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}}></div>
+                <Fieldset legend='Información del accidente' toggleable>
                     {renderThirdLine}
-
                     {renderFourthyLine}
-
-                    <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
                     {renderFiveLine}
-                    <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
                     {renderSixtLine}
-                    <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
-                    <div className='p-text-left p-ml-3 p-mb-2 p-mt-3'> Codificación de datos del sinietro </div>
+                </Fieldset>
+                <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}}></div>
+                <Fieldset toggleable legend='Codificación de datos de siniestro'>
                     {renderSevenLine}
+                </Fieldset>
 
-                    <hr style={{marginTop: '1.5em'}} className='p-mb-2'/>
-                    <div className='p-text-left p-ml-3 p-mb-2 p-mt-3'> Diagnostico 1 </div>
+                {/* <hr style={{marginTop: '1.5em'}} className='p-mb-2'/> */}
+                <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}} className='p-text-center'>
+                    <h5> Diagnósticos </h5>
+                </div>
+                <Fieldset toggleable legend='Diagnóstico #1'>
                     {renderDiagnostico1}
+                </Fieldset>
 
-                    <Button 
-                        style={{width: '90%', marginTop: '1%', marginBottom: '1%', marginLeft: '5%', marginRight: '5%'}}
-                        label='Agregar diagnostico'
-                        icon='pi pi-plus'
-                        color='#444'
-                        disabled={true}
-                        onClick={(e) => e.preventDefault()}
-                    />
+                <Button 
+                    style={{width: '90%', marginTop: '1%', marginBottom: '1%', marginLeft: '5%', marginRight: '5%'}}
+                    label='Agregar diagnostico'
+                    icon='pi pi-plus'
+                    color='#444'
+                    disabled={true}
+                    onClick={(e) => e.preventDefault()}
+                />
                     <div className='p-grid p-fluid p-mt-4'>
                         <div className='p-md-4 p-col-1'>
-
+                            <Button 
+                            label='Cancelar'
+                            icon='pi pi-times'
+                            className='button p-button-warning'
+                            onClick={(e) => history.push('/incidentes/')}
+                            style={{width: '90%' ,marginLeft: '5%', marginRight: '5%', marginBottom: '2em'}}
+                            />
                         </div>
                         <div className='p-md-4 p-col-1'>
 
@@ -865,4 +951,4 @@ const CargaIncidente = () => {
      );
 }
  
-export default CargaIncidente;
+export default EditarIncidente;

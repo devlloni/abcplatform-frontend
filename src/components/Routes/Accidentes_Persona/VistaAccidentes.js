@@ -9,18 +9,18 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import useWindowSize from '../../../hooks/useWindowSize';
 import { shortId, shortTitle } from '../../../helpers/shortStringId';
-const AccidentesPropiedad = () => {
+const AccidentesPersona = () => {
     
     let history = useHistory();
 
     const myToast = useRef(null);
     const { width } = useWindowSize();
 
-    const [ incidientesPropiedad, setIncidientesPropiedad ] = useState(null);
+    const [ incidentesPersona, setIncidentesPersona ] = useState(null);
     const [ globalFilter, setGlobalFilter ] = useState('');
     const [ windowSize, setWindowSize ] = useState(width);
     useEffect( ()=>{
-        if(!incidientesPropiedad){
+        if(!incidentesPersona){
             getIncidentes();
         }
         setWindowSize(width);
@@ -28,13 +28,12 @@ const AccidentesPropiedad = () => {
 
     //*Funcs
     const getIncidentes = async () => {
-        const resp = await clienteAxios.get('/incidentespropiedad/');
+        const resp = await clienteAxios.get('/incidentespersona/');
         if(resp.status === 200){
-            const { incidentes } = resp.data;
-            if(!incidentes){
+            if(!resp.data){
                 return showToast('error', '¡Oops!', 'Error en el servidor, no pudimos obtener los incidentes de la base de datos.');
             }else{
-                setIncidientesPropiedad(incidentes);
+                setIncidentesPersona(resp.data);
             }
         }else{
             return showToast('error', '¡Oops!', 'Ocurrió un error desconocido en el servidor, por favor, informe a su webmaster.');
@@ -47,11 +46,11 @@ const AccidentesPropiedad = () => {
     }
 
     const newIncidente = () => {
-        return history.push('/incidentes/propiedad');
+        return history.push('/incidentes/persona');
     }
 
     const editIncidente = e => {
-        history.push(`/incidentes/propiedad/${e._id}`);
+        history.push(`/incidentes/persona/${e._id}`);
     }
 
     const deleteIncidente = e => {
@@ -61,7 +60,7 @@ const AccidentesPropiedad = () => {
     //* Components
     const TableHeader = (
         <div className='table-header'>
-            Lista de Incidentes a la propiedad
+            Lista de Incidentes de personas
             <span className='p-input-icon-left'>
                 <i className='pi pi-search' />
                 <InputText type='search' onInput={(e)=>setGlobalFilter(e.target.value)} placeholder='Filtros globales' />
@@ -104,7 +103,7 @@ const AccidentesPropiedad = () => {
         <div className="datatable-crud-demo"style={
             {paddingBottom: '50px',marginTop: '0.8em', marginLeft: '0.8em', marginRight: '0.8em'}
         }>
-            <h5 className='center'>Lista de incidentes (propiedad) </h5>
+            <h5 className='center'>Lista de incidentes (persona) </h5>
             <Toast 
                 ref={myToast}
             />
@@ -139,11 +138,11 @@ const AccidentesPropiedad = () => {
                             />
                     </div>
                 </div>
-                {incidientesPropiedad ? (
+                {incidentesPersona ? (
                 <div className='datatable-filter-demo'>
                     <div className='card'>
                         <DataTable
-                            value={incidientesPropiedad}
+                            value={incidentesPersona}
                             className='p-datatable-responsive-demo'
                             paginator rows={6}
                             header={TableHeader}
@@ -189,4 +188,4 @@ const AccidentesPropiedad = () => {
      );
 }
  
-export default AccidentesPropiedad;
+export default AccidentesPersona;
