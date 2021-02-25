@@ -7,38 +7,41 @@ import { InputText } from 'primereact/inputtext'
 import { Column } from 'primereact/column';
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { Dialog } from "primereact/dialog";
-import useWindowSize from '../../../hooks/useWindowSize';
-import clienteAxios from '../../../config/clienteAxios';
+import useWindowSize from '../../../../hooks/useWindowSize';
+import clienteAxios from '../../../../config/clienteAxios';
 
-const ZonasAfectadas = ({showToast}) => {
+const CausasBasicas = ({showToast}) => {
 
     //? General Component Configs
-    const PAGE_NAME = 'Zonas afectadas'
-    const TEMPLATE_NAME = 'Zona afectada'
+    const PAGE_NAME = 'Causas Básicas'
+    const TEMPLATE_NAME = 'Causa básica'
 
     const myToast = React.useRef(null);
     const {  width } = useWindowSize();
 
     const [ data, setData ] = React.useState(null);
+    const [ campo1data, setCampo1Data ] = React.useState('');
     const [ enviado, setEnviado ] = React.useState(false);
     const [ globalFilter, setGlobalFilter ] = React.useState('');
     const [ showDialog, setShowDialog ] = React.useState(false);
     const [ formData, setFormData ] = React.useState({
-        nombrezonacuerpo: '',
+        nombrecausasbasicas: '',
         _id: ''
     });
-    const { nombrezonacuerpo, _id } = formData;
+    const { nombrecausasbasicas, _id } = formData;
 
     //* --------- FUNCTIONS & HOOKS -------- */
-    React.useEffect( ()=> {
+
+    React.useEffect( ()=>{
         if(!data){
             getData();
         }
     }, [])
 
+
     const reiniciarData = () => {
         setFormData({
-            nombrezonacuerpo: '',
+            nombrecausasbasicas: '',
             _id: ''
         });
     }
@@ -57,11 +60,11 @@ const ZonasAfectadas = ({showToast}) => {
         setShowDialog(true);
     }
     const getData = async () => {
-        const resp = await clienteAxios.get('/generaldata/zonacuerpoafectada');
-        setData(resp.data.zonacuerpoafectada);
+        const resp = await clienteAxios.get('/generaldata/causasbasicas');
+        setData(resp.data.causasbasicas);
     }
     const handleEdit = async () => {
-        const resp = await clienteAxios.post('/generaldata/zonacuerpoafectada/edit', formData);
+        const resp = await clienteAxios.post('/generaldata/causasbasicas/edit', formData);
         if(resp.status === 200){
             setShowDialog(false);
             reiniciarData();
@@ -72,39 +75,38 @@ const ZonasAfectadas = ({showToast}) => {
         }
     }
     const handleNewData = async () => {
-        if(nombrezonacuerpo && nombrezonacuerpo.length > 4 ){
+        if(nombrecausasbasicas && nombrecausasbasicas.length > 4){
             if(formData._id){
                 return handleEdit();
             }else{
-                const resp = await clienteAxios.post('/generaldata/zonacuerpoafectada', {
-                    nombrezonacuerpo: formData.nombrezonacuerpo
+                const resp = await clienteAxios.post('/generaldata/causasbasicas/',{
+                    nombrecausasbasicas: formData.nombrecausasbasicas
                 });
                 if(resp.status === 200){
                     if(resp.data.code === 1){
                         reiniciarData();
                         setShowDialog(false);
                         getData();
-                        return showToast('success', '¡Perfecto!','¡Genial! La zona fué cargada con éxito.', )
+                        return showToast('success', '¡Perfecto!','¡Genial! La causa fué cargado con éxito.', )
                     }else{
                         reiniciarData();
                         setShowDialog(false);
                         return showToast('error', '¡Ooops!', resp.data.msg )
                     }
                 }else{
-                    return showToast('error', '¡Oops!', 'Ocurrió un error inesperado, por favor, comunicarlo a un webmaster.');
+                    return showToast('error', '¡Oops!', 'Ocurrió un error en el servidor.');
                 }
             }
         }else{
-            showToast('error', '¡Oops!', 'Complete todos los campos.');
+            return showToast('error', '¡Oops!', 'Completa todos los campos.');
         }
     }
-
-    const handleDelete = async rawdata => {
+    const handleDelete = async (rawdata) => {
         if(rawdata._id && rawdata._id.length > 0){
-            const resp = await clienteAxios.post('/generaldata/zonacuerpoafectada/delete', { id : rawdata._id });
+            const resp = await clienteAxios.post('/generaldata/causasbasicas/delete', {id: rawdata._id})
             if(resp.status === 200){
                 getData();
-                return showToast('success', '¡Perfecto!', `'[${rawdata.nombrezonacuerpo}]' eliminado con éxito.`);
+                return showToast('success', 'Perfecto!', `['${rawdata.nombrecausasbasicas}]' eliminado con éxito.`)
             }
         }
     }
@@ -147,7 +149,7 @@ const ZonasAfectadas = ({showToast}) => {
 
     const TableHeader = (
         <div className="table-header">
-                Contenido de zonas afectadas cargadas
+                Contenido de causas básicas cargadas
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Filtros globales" />
@@ -159,7 +161,7 @@ const ZonasAfectadas = ({showToast}) => {
         return(
             <React.Fragment>
                 <span className='p-column-title'></span>
-                {rawData.nombrezonacuerpo}
+                {rawData.nombrecausasbasicas}
             </React.Fragment>
         )
     }
@@ -176,7 +178,7 @@ const ZonasAfectadas = ({showToast}) => {
         return(
             <div className='p-text-center'>
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-mr-2" onClick={() => editForm(rawData)} />
-                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={() => handleDelete(rawData)} />
+                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning" onClick={()=> handleDelete(rawData)} />
             </div>
         );
     }
@@ -212,8 +214,8 @@ const ZonasAfectadas = ({showToast}) => {
                     paginator rows={4} header={TableHeader}
                     globalFilter={globalFilter}
                  >
-                    <Column field="nombrezonacuerpo" header="Nombre Zona" body={Column1BodyTemplate}
-                        filter={true} filterPlaceholder={'Buscar por Nombre'}
+                    <Column field="nombrecausasbasicas" header="nombrecausasbasicas" body={Column1BodyTemplate}
+                        filter={true} filterPlaceholder={'Buscar por nombrecausasbasicas'}
                     />
                     <Column field="_id" header="ID" body={Column2BodyTemplate}
                         filter={true} filterPlaceholder={'Buscar por ID'}
@@ -237,27 +239,27 @@ const ZonasAfectadas = ({showToast}) => {
                     <div className='p-grid p-fluid'>
                         <div className='p-col-12'>
                             <InputText 
-                                value={formData.nombrezonacuerpo}
-                                name='nombrezonacuerpo'
-                                id='nombrezonacuerpo'
-                                className={classNames({ 'p-invalid': enviado && !formData.nombrezonacuerpo })}
+                                value={formData.nombrecausasbasicas}
+                                name='nombrecausasbasicas'
+                                id='nombrecausasbasicas'
+                                className={classNames({ 'p-invalid': enviado && !formData.nombrecausasbasicas })}
                                 onChange={(e) => onInputChange(e)}
-                                placeholder="Nombre zona cuerpo"
+                                placeholder="nombrecausasbasicas"
                             />
-                            {enviado && !nombrezonacuerpo && <small className="p-invalid">El nombre de la zona es obligatorio.</small>}
+                            {enviado && !nombrecausasbasicas && <small className="p-invalid">nombrecausasbasicas es obligatorio.</small>}
                         </div>
                     </div>
                     <div className='p-grid p-fluid'>
                         <div className='p-col-12'>
                             <InputText 
                                 value={formData._id}
-                                disabled={true}
                                 name="_id"
-                                placeholder="_id"
+                                disabled={true}
+                                placeholder="ID"
                                 className={classNames({ 'p-invalid': enviado && !_id })}
                                 onChange={(e) => onInputChange(e)}
                             />
-                            {/* {enviado && !_id && <small className="p-invalid"> es obligatorio.</small>} */}
+                            {enviado && !formData._id && <small className="p-invalid">nombrecausasbasicas es obligatorio.</small>}
                         </div>
                     </div>
                 </Dialog>
@@ -268,4 +270,4 @@ const ZonasAfectadas = ({showToast}) => {
     );
 }
  
-export default ZonasAfectadas;
+export default CausasBasicas;

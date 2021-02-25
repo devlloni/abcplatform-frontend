@@ -7,10 +7,15 @@ import { InputText } from 'primereact/inputtext'
 import { Column } from 'primereact/column';
 import { ProgressSpinner } from 'primereact/progressspinner'
 import { Dialog } from "primereact/dialog";
-import useWindowSize from '../../../hooks/useWindowSize';
-import clienteAxios from '../../../config/clienteAxios';
+import useWindowSize from '../../../../hooks/useWindowSize';
+import clienteAxios from '../../../../config/clienteAxios';
 
-const AgentesMateriales = ({showToast}) => {
+const CausasInmediatas = ({showToast}) => {
+
+    //? General Component Configs
+    const PAGE_NAME = 'Causas Inmediatas'
+    const TEMPLATE_NAME = 'Causa inmediata'
+
     const myToast = React.useRef(null);
     const {  width } = useWindowSize();
 
@@ -19,22 +24,27 @@ const AgentesMateriales = ({showToast}) => {
     const [ globalFilter, setGlobalFilter ] = React.useState('');
     const [ showDialog, setShowDialog ] = React.useState(false);
     const [ formData, setFormData ] = React.useState({
-        nombreagentematerial: '',
+        nombrecausasinmediatas: '',
         _id: ''
     });
-    const { nombreagentematerial, _id } = formData;
+    const { nombrecausasinmediatas, _id } = formData;
 
     //* --------- FUNCTIONS & HOOKS -------- */
 
-    React.useEffect( ()=>{
+    React.useEffect( ()=> {
         if(!data){
             getData();
         }
-    }, [])
+    },[])
+
+    const getData = async () => {
+        const resp = await clienteAxios.get('/generaldata/causasinmediatas');
+        setData(resp.data.causasinmediatas);
+    }
 
     const reiniciarData = () => {
         setFormData({
-            nombreagentematerial: '',
+            nombrecausasinmediatas: '',
             _id: ''
         });
     }
@@ -52,14 +62,8 @@ const AgentesMateriales = ({showToast}) => {
         setFormData(rawData);
         setShowDialog(true);
     }
-
-    //Get the data
-    const getData = async () => {
-        const resp = await clienteAxios.get('/generaldata/agentesmateriales');
-        setData(resp.data.agentesMateriales)
-    }
     const handleEdit = async () => {
-        const resp = await clienteAxios.post('/generaldata/agentesmateriales/edit', formData);
+        const resp = await clienteAxios.post('/generaldata/causasinmediatas/edit', formData);
         if(resp.status === 200){
             setShowDialog(false);
             reiniciarData();
@@ -69,48 +73,39 @@ const AgentesMateriales = ({showToast}) => {
             return showToast('error', '¡Oops!', 'Ocurrió un error en el servidor');
         }
     }
-    //Completar data
     const handleNewData = async () => {
-        if(nombreagentematerial && nombreagentematerial.length > 4){
+        if(nombrecausasinmediatas && nombrecausasinmediatas.length > 4){
             if(formData._id){
                 return handleEdit();
             }else{
-                const resp = await clienteAxios.post('/generaldata/agentesmateriales', {
-                    nombreagentematerial: formData.nombreagentematerial
+                const resp =  await clienteAxios.post('/generaldata/causasinmediatas',{
+                    nombrecausasinmediatas: formData.nombrecausasinmediatas
                 });
-            if(resp.status === 200){
-                if(resp.data.code === 1){
-                    reiniciarData();
-                    setShowDialog(false);
-                    getData();
-                    return showToast('success', '¡Perfecto!','¡Genial! El agente fué cargado con éxito.', )
+                if(resp.status === 200){
+                    if(resp.data.code === 1){
+                        reiniciarData();
+                        setShowDialog(false);
+                        getData();
+                        return showToast('success', '¡Perfecto!','¡Genial! La causa fué cargada con éxito.', )
+                    }else{
+                        reiniciarData();
+                        setShowDialog(false);
+                        return showToast('error', '¡Ooops!', resp.data.msg )
+                    }
                 }else{
-                    reiniciarData();
-                    setShowDialog(false);
-                    return showToast('error', '¡Ooops!', resp.data.msg )
+                    return showToast('error', '¡Oops!', 'Ocurrió un error inesperado');
                 }
-                
-            }else{
-                return showToast('error', '¡Oops!', 'Ocurrió un error en el servidor.');
             }
-            }
-        }else{
-            return showToast('error', '¡Oops!', 'Completa todos los campos');
         }
-        
     }
     const handleDelete = async (rawdata) => {
-        console.log(rawdata)
         if(rawdata._id && rawdata._id.length > 0){
-            const resp = await clienteAxios.post('/generaldata/agentesmateriales/delete', {id: rawdata._id});
+            const resp = await clienteAxios.post('/generaldata/causasinmediatas/delete', { id : rawdata._id });
             if(resp.status === 200){
                 getData();
-                return showToast('success', '¡Perfecto!', `['${rawdata.nombreagentematerial}]' eliminado con éxito.`);
+                return showToast('success', '¡Perfecto!', `'[${rawdata.nombrecausasinmediatas}]' eliminado con éxito.`);
             }
-        }else{
-            return showToast('error', '¡Error!','intente con otro item')
         }
-        
     }
     //* ---------  RENDER COMPONENTS -------- */
 
@@ -142,7 +137,7 @@ const AgentesMateriales = ({showToast}) => {
                             label="Exportar" 
                             icon="pi pi-upload" 
                             className="p-button-help" 
-                            onClick={(e)=> e.preventDefault()} 
+                            onClick={(e)=>e.preventDefault()} 
                         />
                     </div>
             </div>
@@ -151,7 +146,7 @@ const AgentesMateriales = ({showToast}) => {
 
     const TableHeader = (
         <div className="table-header">
-                Contenido de agentes materiales cargados
+                Contenido de causas inmediatas cargadas
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Filtros globales" />
@@ -163,7 +158,7 @@ const AgentesMateriales = ({showToast}) => {
         return(
             <React.Fragment>
                 <span className='p-column-title'></span>
-                {rawData.nombreagentematerial}
+                {rawData.nombrecausasinmediatas}
             </React.Fragment>
         )
     }
@@ -186,7 +181,7 @@ const AgentesMateriales = ({showToast}) => {
     }
 
     const headerdialog = (
-        <div className='center'>Detalles de Agente Material</div>
+        <div className='center'>Detalles de {TEMPLATE_NAME}</div>
     )
     const dialogFooter = (
         <div>
@@ -199,7 +194,7 @@ const AgentesMateriales = ({showToast}) => {
 
     return ( 
     <React.Fragment>
-        <h5 className='center'>Agentes Materiales</h5>
+        <h5 className='center'>{PAGE_NAME}</h5>
         <Toast ref={myToast} />
 
         <div className='card'>
@@ -216,11 +211,11 @@ const AgentesMateriales = ({showToast}) => {
                     paginator rows={4} header={TableHeader}
                     globalFilter={globalFilter}
                  >
-                    <Column field="nombreagentematerial" header="Nombre de agente material" body={Column1BodyTemplate}
+                    <Column field="nombrecausasinmediatas" header="Nombre" body={Column1BodyTemplate}
                         filter={true} filterPlaceholder={'Buscar por Nombre'}
                     />
-                    <Column field="_id" header="_id" body={Column2BodyTemplate}
-                        filter={true} filterPlaceholder={'Buscar por _id'}
+                    <Column field="_id" header="ID" body={Column2BodyTemplate}
+                        filter={true} filterPlaceholder={'Buscar por ID'}
                     />
                     <Column body={actionBody} />
                  </DataTable>
@@ -241,14 +236,14 @@ const AgentesMateriales = ({showToast}) => {
                     <div className='p-grid p-fluid'>
                         <div className='p-col-12'>
                             <InputText 
-                                value={formData.nombreagentematerial}
-                                name='nombreagentematerial'
-                                id='nombreagentematerial'
-                                className={classNames({ 'p-invalid': enviado && !formData.nombreagentematerial })}
+                                value={formData.nombrecausasinmediatas}
+                                name='nombrecausasinmediatas'
+                                id='nombrecausasinmediatas'
+                                className={classNames({ 'p-invalid': enviado && !formData.nombrecausasinmediatas })}
                                 onChange={(e) => onInputChange(e)}
-                                placeholder="Nombre del agente material"
+                                placeholder="Nombre de la causa inmediata"
                             />
-                            {enviado && !nombreagentematerial && <small className="p-invalid">nombreagentematerial es obligatorio.</small>}
+                            {enviado && !nombrecausasinmediatas && <small className="p-invalid">El nombre es obligatorio.</small>}
                         </div>
                     </div>
                     <div className='p-grid p-fluid'>
@@ -257,11 +252,11 @@ const AgentesMateriales = ({showToast}) => {
                                 value={formData._id}
                                 name="_id"
                                 disabled={true}
-                                placeholder="_id"
+                                placeholder="ID"
                                 className={classNames({ 'p-invalid': enviado && !_id })}
                                 onChange={(e) => onInputChange(e)}
                             />
-                            {enviado && !_id && <small className="p-invalid">nombreagentematerial es obligatorio.</small>}
+                            {enviado && !_id && <small className="p-invalid">ID es obligatorio.</small>}
                         </div>
                     </div>
                 </Dialog>
@@ -272,4 +267,4 @@ const AgentesMateriales = ({showToast}) => {
     );
 }
  
-export default AgentesMateriales;
+export default CausasInmediatas;

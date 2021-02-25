@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TabMenu } from 'primereact/tabmenu';
 import AccidentesPropiedadHome from './Accidentes_Propiedad/AccidentesPropiedadHome';
-import AccidentesPersonaHome from './Accidentes/VistaAccidentes';
+import AccidentesPersonaHome from './Accidentes_Persona/VistaAccidentes';
 
 const AccidentesVista = () => {
     const [ items, setItems ] = React.useState([

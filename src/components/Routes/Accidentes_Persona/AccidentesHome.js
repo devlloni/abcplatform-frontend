@@ -3,13 +3,13 @@ import { Toast } from 'primereact/toast';
 import { TabMenu } from 'primereact/tabmenu';
 import OldHome from './oldHome';
 import Inicio from './CargaIncidente';
-import AgentesMateriales from './AgentesMateriales';
-import CausasBasicas from './CausasBasicas';
-import CausasGestion from './CausasGestion';
-import CausasInmediatas from './CausasInmediatas';
-import Formas from './Formas';
-import NaturalezaLesion from './NaturalezaLesion';
-import ZonasAfectadas from './ZonasAfectadas';
+import AgentesMateriales from './Configuraciones/AgentesMateriales';
+import CausasBasicas from './Configuraciones/CausasBasicas';
+import CausasGestion from './Configuraciones/CausasGestion';
+import CausasInmediatas from './Configuraciones/CausasInmediatas';
+import Formas from './Configuraciones/Formas';
+import NaturalezaLesion from './Configuraciones/NaturalezaLesion';
+import ZonasAfectadas from './Configuraciones/ZonasAfectadas';
 
 const AccidentesPersona = () => {
 
