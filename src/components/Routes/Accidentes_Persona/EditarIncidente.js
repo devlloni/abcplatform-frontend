@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { localeEs } from '../../../helpers/locale';
-import { Tooltip } from 'primereact/tooltip'
+import { getPathname } from '../../../config/breadcrumb';
 import { Button } from 'primereact/button';
 import { useLocation, useParams, useHistory } from 'react-router-dom';
 import { AutoComplete } from 'primereact/autocomplete';
@@ -8,6 +8,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
 import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar'
+import { Editor } from 'primereact/editor';
 import { ScrollPanel } from 'primereact/scrollpanel';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment';
@@ -15,6 +16,7 @@ import styled from 'styled-components';
 import { Toast } from 'primereact/toast';
 import { Types } from 'mongoose';
 import { Fieldset } from 'primereact/fieldset';
+import { BreadCrumb } from 'primereact/breadcrumb';
 
 const Divisor = styled.hr`
     margin-top: '1.5em';
@@ -28,6 +30,10 @@ const EditarIncidente = () => {
     const { ObjectId } = Types;
     const { id } = useParams();
     let history = useHistory();
+    const itemsBread = [
+        {label: 'Incidentes', url: `${getPathname()}/incidentes`},
+        {label: 'Editar incidente persona'}
+    ]
     const [ sucursal, setSucursal ] = useState('');
     const [ dataForm, setDataForm ] = useState({
         nombre: '',
@@ -79,6 +85,11 @@ const EditarIncidente = () => {
     const [ zonaCuerpo, setZonaCuerpo ] = useState(null);
     const [ naturalezaLesion, setNaturalezaLesion ] = useState(null);
     const [ formas, setFormas ] = useState(null);
+    //
+    const [ causasBasicas, setCausasBasicas ] = useState(null);
+    const [ causasGestion, setCausasGestion ] = useState(null);
+    const [ causasInmediatas, setCausasInmediatas ] = useState(null);
+
     const [ filteredEmpleados, setFilteredEmpleados ] = useState(null);
     //*
     const [ denunciasConfig, setDenunciasConfig ] = useState([
@@ -253,6 +264,31 @@ const EditarIncidente = () => {
         let agentesmateriales = allResp.agentesmateriales;
         let zonacuerpo = allResp.zonacuerpo;
         let naturaleza = allResp.naturaleza;
+        let causasbasicas = allResp.causasbasicas;
+        let causasinmediatas = allResp.causasinmediatas;
+        let causasgestion = allResp.causasgestion;
+
+        let dataCausasBasicas = [];
+        if(allResp.causasbasicas.length > 0){
+            for(let i = 0; i < causasbasicas.length; i++){
+                dataCausasBasicas.push({label: causasbasicas[i].nombrecausasbasicas, value: causasbasicas[i]._id});
+            }
+            setCausasBasicas(dataCausasBasicas);
+        }
+        let dataCausasGestion = [];
+        if(allResp.causasgestion.length > 0){
+            for(let i = 0; i < causasgestion.length; i++){
+                dataCausasGestion.push({label: causasgestion[i].nombrecausasgestion, value: causasgestion[i]._id});
+            }
+            setCausasGestion(dataCausasGestion);
+        }
+        let dataCausasInmediatas = [];
+        if(allResp.causasinmediatas.length > 0){
+            for(let i = 0; i < causasinmediatas.length; i++){
+                dataCausasInmediatas.push({label: causasinmediatas[i].nombrecausasinmediatas, value: causasinmediatas[i]._id})
+            }
+            setCausasInmediatas(dataCausasInmediatas)
+        }
 
         let dataFormas = [];
         if(allResp.formas.length > 0){
@@ -823,26 +859,6 @@ const EditarIncidente = () => {
     const renderDiagnostico1 = (
         <div>
             <div className='p-grid p-fluid p-mr-1 p-ml-1'>
-                <div className='p-sm-3 p-col-12'>
-                    <label htmlFor='codigodiez'>CODIGO CIE 10</label>
-                    <InputText 
-                        value={''}
-                        placeholder='Codigo'
-                        name='codigodiez'
-                        onChange={(e) => e.preventDefault()}
-                    />
-                </div>
-                <div className='p-sm-9 p-col-12'>
-                    <label htmlFor='buscarcodigo'>Buscar</label>
-                    <InputText 
-                        value={''}
-                        placeholder='Buscar código CIE 10'
-                        name='buscarcodigo'
-                        onChange={(e) => e.preventDefault()}
-                    />
-                </div>
-            </div>
-            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
                 <div className='p-sm-6 p-col-12'>
                     <label htmlFor='naturaleza'>Naturaleza de la lesión</label>
                     <Dropdown 
@@ -863,6 +879,83 @@ const EditarIncidente = () => {
                 </div>
             </div>
         </div>
+    );
+
+    const renderIncidenteInfo = (
+        <div>
+            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+                <div className='p-md-12 p-col-12'>
+                    <label htmlFor='titulo'>Título del incidente</label>
+                    <InputText 
+                        value={ incidente ? incidente.titulo : ''}
+                        name="titulo"
+                        onChange={(e)=> setDataForm({...dataForm, titulo: e.target.value})}
+                        placeholder='Ingrese un título semidescriptivo al incidente.'
+                    />
+                    {/* {formEnviado && !dataForm.titulo ? <small style={{color: 'red'}}>El título del incidente es obligatorio.</small> : ''} */}
+                </div>
+                <div className='p-md-12 p-col-12'>
+                    <label htmlFor='investigacion'>Descripción de la investigación</label>
+                    <Editor 
+                        value={incidente ? incidente.investigacion : ''}
+                        onTextChange={(e) => setDataForm({...dataForm, investigacion: e.htmlValue})}
+                        name='investigacion'
+                        style={{
+                            height: '15em'
+                        }}
+                    />
+                    {/* {formEnviado && !dataForm.investigacion ? <small style={{color: 'red'}}>Por favor, comente algo acerca de la investigación.</small> : ''} */}
+                </div>
+            </div>
+        </div>
+    );
+
+    const renderAnalisisIncidente = (
+        <div>
+            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+                <div className='p-col-12'>
+                    <label htmlFor='causasinmediatas'>Causas inmediatas</label>
+                    <Dropdown 
+                        name="causasinmediatas"
+                        value={ incidente ? incidente.causasinmediatas : ''}
+                        options={causasInmediatas}
+                        onChange={(e)=> setDataForm({...dataForm, causasinmediatas: e.value})}
+                        placeholder="Sin elección"
+                    />
+                </div>
+                <div className='p-col-12'>
+                    <label htmlFor='causasbasicas'>Causas basicas</label>
+                    <Dropdown 
+                        name="causasbasicas"
+                        options={causasBasicas}
+                        value={ incidente ? incidente.causasbasicas : ''}
+                        onChange={(e)=> setDataForm({...dataForm, causasbasicas: e.value})}
+                        placeholder="Sin elección"
+                    />
+                </div>
+                <div className='p-col-12'>
+                    <label htmlFor='causasgestion'>Causas de gestión</label>
+                    <Dropdown 
+                        options={causasGestion}
+                        name="causasgestion"
+                        value={ incidente ? incidente.causasgestion: '' }
+                        onChange={(e)=> setDataForm({...dataForm, causasgestion: e.value})}
+                        placeholder="Sin elección"
+                    />
+                </div>
+                <div className='p-md-12 p-col-12'>
+                    <label htmlFor='causasraiz'>Descripción de la causa raíz</label>
+                    <Editor 
+                        value={ incidente ? incidente.causasraiz : '' }
+                        onTextChange={(e) => setDataForm({...dataForm, causasraiz: e.htmlValue})}
+                        name='causasraiz'
+                        style={{
+                            height: '15em'
+                        }}
+                    />
+                </div>
+            </div>
+        </div>
     )
 
     const renderBlankSpace = (
@@ -874,6 +967,7 @@ const EditarIncidente = () => {
 
     return ( 
         <div className='p-mt-4'>
+            <BreadCrumb model={itemsBread} home={{icon: 'pi pi-home', url: `${getPathname()}/`}} />
             <Toast 
                 ref={myToast}
             />
@@ -918,6 +1012,14 @@ const EditarIncidente = () => {
                     disabled={true}
                     onClick={(e) => e.preventDefault()}
                 />
+
+                <Fieldset toggleable legend="Incidente">
+                    {renderIncidenteInfo}
+                </Fieldset>
+                <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}}></div>
+                <Fieldset toggleable legend="Análisis del incidente">
+                    {renderAnalisisIncidente}
+                </Fieldset>
                     <div className='p-grid p-fluid p-mt-4'>
                         <div className='p-md-4 p-col-1'>
                             <Button 
@@ -940,6 +1042,7 @@ const EditarIncidente = () => {
                                     setFormEnviado(true)
                                     postNewIncidente(e);
                                 }}
+                                disabled={true}
                             />
                         </div>
                     </div>

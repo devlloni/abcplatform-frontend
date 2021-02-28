@@ -85,7 +85,7 @@ function App() {
             <RutaPrivada path='/incidentes/persona/:id' exact component={EditarIncidente} />
             <RutaPrivada path='/incidentes/propiedad' exact component={CargaIncidentePropiedad} showToast={showToast} />
             <RutaPrivada path='/incidentes/propiedad/:id' exact component={EditarIncidentePropiedad} />
-            <RutaPrivada path='/incidentes/persona/configuraciones' exact component={AccidentesHome} />
+            <RutaPrivada path='/incidentes/configuraciones' exact component={AccidentesHome} />
             <RutaPrivada path='/incidentes/propiedad' exact component={AccidentesPropiedad} />
             <RutaPrivada component={NotFound} />
             {/* <RutaPrivadaAdmin path='/companies' exact adminRequired={4}  component={Companies} /> */}
