@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
 import { localeEs } from '../../../helpers/locale';
 import { Tooltip } from 'primereact/tooltip'
 import { Button } from 'primereact/button';
@@ -22,13 +23,13 @@ const Divisor = styled.hr`
 `;
 
 const CargaIncidente = () => {
-
+    let history = useHistory();
     const [ sucursal, setSucursal ] = useState('');
     const [ dataForm, setDataForm ] = useState({
         nombre: '',
         usuario: '',
         compania: '',
-        puesto: '',
+        // puesto: '',
         lugar: '',
         denuncia: '',
         tipo: '',
@@ -44,7 +45,7 @@ const CargaIncidente = () => {
         testigos: '',
         estabaenpuesto: true,
         trabajohabitual: true,
-        recalificacion: '',
+        recalificacion: false,
         forma: '',
         agentematerial: '',
         naturaleza: '',
@@ -60,6 +61,7 @@ const CargaIncidente = () => {
         causasgestion: ''
 
     });
+    const [ submitForm, setSubmitForm ] = useState(false);
     const [ selectedEmpleado, setSelectedEmpleado ] = useState(null);
     const [ empleados, setEmpleados ] = useState(null);
     const [ companias, setCompanias ] = useState(null);
@@ -75,6 +77,11 @@ const CargaIncidente = () => {
     const [ zonaCuerpo, setZonaCuerpo ] = useState(null);
     const [ naturalezaLesion, setNaturalezaLesion ] = useState(null);
     const [ formas, setFormas ] = useState(null);
+    //
+    const [ causasBasicas, setCausasBasicas ] = useState(null);
+    const [ causasGestion, setCausasGestion ] = useState(null);
+    const [ causasInmediatas, setCausasInmediatas ] = useState(null);
+
     const [ filteredEmpleados, setFilteredEmpleados ] = useState(null);
     //*
     const [ denunciasConfig, setDenunciasConfig ] = useState([
@@ -169,12 +176,54 @@ const CargaIncidente = () => {
     const postNewIncidente = async e => {
         e.preventDefault();
         //!Validaciones
-
-        const resp = await clienteAxios.post('/incidentespersona/', dataForm);
-        if(resp.status === 200){
-            console.log(resp.data);
-            return showToast('success', '¡Exito!', `La incidencia a ${dataForm.nombre} fué cargada con éxito.`);
+        if(
+            !dataForm.usuario || dataForm.usuario.trim() === '' ||
+            !dataForm.compania || dataForm.compania.trim() === '' ||
+            // !dataForm.puesto || dataForm.puesto.trim() === '' ||
+            !dataForm.lugar || dataForm.lugar.trim() === '' ||
+            !dataForm.denuncia || dataForm.denuncia.trim() === '' ||
+            !dataForm.tipo || dataForm.tipo.trim() === '' ||
+            !dataForm.numerosiniestro || dataForm.numerosiniestro.trim() === '' ||
+            !dataForm.fechadenuncia || 
+            !dataForm.fechaincidente || 
+            !dataForm.horaincidente || 
+            !dataForm.gravedad || dataForm.gravedad.trim() === '' ||
+            !dataForm.horaingreso || dataForm.horaingreso.trim() === '' ||
+            !dataForm.sector || dataForm.sector.trim() === '' ||
+            !dataForm.turno || dataForm.turno.trim() === '' ||
+            !dataForm.jefeacargo || dataForm.jefeacargo.trim() === '' ||
+            !dataForm.testigos || dataForm.testigos.trim() === '' ||
+            
+            !dataForm.forma || dataForm.forma.trim() === '' ||
+            !dataForm.agentematerial || dataForm.agentematerial.trim() === '' ||
+            !dataForm.naturaleza || dataForm.naturaleza.trim() === '' ||
+            !dataForm.zonacuerpo || dataForm.zonacuerpo.trim() === '' ||
+            !dataForm.fechaalta ||
+            // !dataForm.codigo || dataForm.codigo.trim() === '' ||
+            !dataForm.titulo || dataForm.titulo.trim() === '' ||
+            !dataForm.investigacion || dataForm.investigacion.trim() === '' ||
+            !dataForm.causasraiz || dataForm.causasraiz.trim() === '' ||
+            !dataForm.causasinmediatas || dataForm.causasinmediatas.trim() === '' ||
+            !dataForm.causasbasicas || dataForm.causasbasicas.trim() === '' ||
+            !dataForm.causasinmediatas || dataForm.causasinmediatas.trim() === '' 
+        ){
+            return showToast('error', '¡Revisa bien!', 'Verifica que todos los campos estén completos.');
+        }else{
+            setSubmitForm(true);
+            const resp = await clienteAxios.post('/incidentespersona/', dataForm);
+            if(resp.status === 200){
+                console.log(resp.data);
+                showToast('success', '¡Exito!', `La incidencia a ${dataForm.nombre} fué cargada con éxito.`)
+                setTimeout(()=>{
+                    return history.push(`/incidentes/persona/${resp.data.incidente._id}`)
+                    // console.log(`enviando a /incidentes/persona/${resp.data.incidente._id}`);
+                }, 2000);
+            }else{
+                return showToast('error', '¡Error!', 'Ocurrió un error en el servidor...');
+            }
+            // return showToast('success', '¡Genial!', 'Se cargó el incidente.');
         }
+        
     }
 
     const getGeneralData = async () => {
@@ -184,7 +233,32 @@ const CargaIncidente = () => {
         let agentesmateriales = allResp.agentesmateriales;
         let zonacuerpo = allResp.zonacuerpo;
         let naturaleza = allResp.naturaleza;
+        let causasbasicas = allResp.causasbasicas;
+        let causasinmediatas = allResp.causasinmediatas;
+        let causasgestion = allResp.causasgestion;
 
+        //
+        let dataCausasBasicas = [];
+        if(allResp.causasbasicas.length > 0){
+            for(let i = 0; i < causasbasicas.length; i++){
+                dataCausasBasicas.push({label: causasbasicas[i].nombrecausasbasicas, value: causasbasicas[i]._id});
+            }
+            setCausasBasicas(dataCausasBasicas);
+        }
+        let dataCausasGestion = [];
+        if(allResp.causasgestion.length > 0){
+            for(let i = 0; i < causasgestion.length; i++){
+                dataCausasGestion.push({label: causasgestion[i].nombrecausasgestion, value: causasgestion[i]._id});
+            }
+            setCausasGestion(dataCausasGestion);
+        }
+        let dataCausasInmediatas = [];
+        if(allResp.causasinmediatas.length > 0){
+            for(let i = 0; i < causasinmediatas.length; i++){
+                dataCausasInmediatas.push({label: causasinmediatas[i].nombrecausasinmediatas, value: causasinmediatas[i]._id})
+            }
+            setCausasInmediatas(dataCausasInmediatas)
+        }
         let dataFormas = [];
         if(allResp.formas.length > 0){
             for(let i = 0; i < formas.length; i++){
@@ -283,11 +357,13 @@ const CargaIncidente = () => {
         }
         else{
             if(typeof(empleado) === 'object'){
+                let codigo = 'lksajdflkas';
                 setDataForm({
                     ...dataForm,
                     usuario: empleado._id,
                     nombre: empleado.nombreCompleto,
-                    compania: empleado.compania
+                    compania: empleado.compania,
+                    codigo: codigo
                 })
                  //!Handle companie
                 let companiaSeleccionada = companias.filter(comp=>{
@@ -329,23 +405,6 @@ const CargaIncidente = () => {
         }
     }
     //*Helpers
-    const getDifFechas = () => {
-
-        if(dataForm.fechaalta && dataForm.fechaincidente){
-            let fechaAlta = moment(dataForm.fechaalta);
-            let fechaAccidente = moment(dataForm.fechaincidente);
-            // let diferencia = fechaAccidente.diff(fechaAlta, 'days');
-            let diferencia = fechaAlta.diff(fechaAccidente, 'days');
-            setDataForm({
-                ...dataForm,
-                diasbaja: diferencia
-            });
-            console.log(diferencia);
-            //return diferencia;
-        }
-
-        return ''
-    }
 
     //*Components
 
@@ -689,7 +748,7 @@ const CargaIncidente = () => {
                     onChange={(e)=> setDataForm({...dataForm, recalificacion: e.value})}
                     name='recalificacion'
                 />
-                {formEnviado && !dataForm.recalificacion ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                {/* {formEnviado && !dataForm.recalificacion ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''} */}
             </div>
             <div className='p-sm-3 p-col-12'>
                 {/* <label htmlFor='enviarmail'>¿Enviar mail a responsables de la empresa?</label>
@@ -748,26 +807,7 @@ const CargaIncidente = () => {
 
     const renderDiagnostico1 = (
         <div>
-            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
-                <div className='p-sm-3 p-col-12'>
-                    <label htmlFor='codigodiez'>CODIGO CIE 10</label>
-                    <InputText 
-                        value={''}
-                        placeholder='Codigo'
-                        name='codigodiez'
-                        onChange={(e) => e.preventDefault()}
-                    />
-                </div>
-                <div className='p-sm-9 p-col-12'>
-                    <label htmlFor='buscarcodigo'>Buscar</label>
-                    <InputText 
-                        value={''}
-                        placeholder='Buscar código CIE 10'
-                        name='buscarcodigo'
-                        onChange={(e) => e.preventDefault()}
-                    />
-                </div>
-            </div>
+            
             <div className='p-grid p-fluid p-mr-1 p-ml-1'>
                 <div className='p-sm-6 p-col-12'>
                     <label htmlFor='naturaleza'>Naturaleza de la lesión</label>
@@ -777,6 +817,7 @@ const CargaIncidente = () => {
                         value={dataForm.naturaleza}
                         onChange={(e) => setDataForm({... dataForm, naturaleza: e.value})}
                     />
+                    {formEnviado && !dataForm.naturaleza ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
                 </div>
                 <div className='p-sm-6 p-col-12'>
                     <label htmlFor='zonacuerpo'>Zona de cuerpo afectada</label>
@@ -786,6 +827,7 @@ const CargaIncidente = () => {
                         value={dataForm.zonacuerpo}
                         onChange={(e) => setDataForm({... dataForm, zonacuerpo: e.value})}
                     />
+                    {formEnviado && !dataForm.zonacuerpo ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
                 </div>
             </div>
         </div>
@@ -802,6 +844,7 @@ const CargaIncidente = () => {
                         onChange={(e)=> setDataForm({...dataForm, titulo: e.target.value})}
                         placeholder='Ingrese un título semidescriptivo al incidente.'
                     />
+                    {formEnviado && !dataForm.titulo ? <small style={{color: 'red'}}>El título del incidente es obligatorio.</small> : ''}
                 </div>
                 <div className='p-md-12 p-col-12'>
                     <label htmlFor='investigacion'>Descripción de la investigación</label>
@@ -813,6 +856,58 @@ const CargaIncidente = () => {
                             height: '15em'
                         }}
                     />
+                    {formEnviado && !dataForm.investigacion ? <small style={{color: 'red'}}>Por favor, comente algo acerca de la investigación.</small> : ''}
+                </div>
+            </div>
+        </div>
+    );
+    const renderAnalisisIncidente = (
+        <div>
+            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+                <div className='p-col-12'>
+                    <label htmlFor='causasinmediatas'>Causas inmediatas</label>
+                    <Dropdown 
+                        name="causasinmediatas"
+                        value={dataForm.causasinmediatas}
+                        options={causasInmediatas}
+                        onChange={(e)=> setDataForm({...dataForm, causasinmediatas: e.value})}
+                        placeholder="Sin elección"
+                    />
+                    {formEnviado && !dataForm.causasinmediatas ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                </div>
+                <div className='p-col-12'>
+                    <label htmlFor='causasbasicas'>Causas basicas</label>
+                    <Dropdown 
+                        name="causasbasicas"
+                        options={causasBasicas}
+                        value={dataForm.causasbasicas}
+                        onChange={(e)=> setDataForm({...dataForm, causasbasicas: e.value})}
+                        placeholder="Sin elección"
+                    />
+                    {formEnviado && !dataForm.causasbasicas ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                </div>
+                <div className='p-col-12'>
+                    <label htmlFor='causasgestion'>Causas de gestión</label>
+                    <Dropdown 
+                        options={causasGestion}
+                        name="causasgestion"
+                        value={dataForm.causasgestion}
+                        onChange={(e)=> setDataForm({...dataForm, causasgestion: e.value})}
+                        placeholder="Sin elección"
+                    />
+                    {formEnviado && !dataForm.causasgestion ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                </div>
+                <div className='p-md-12 p-col-12'>
+                    <label htmlFor='causasraiz'>Descripción de la causa raíz</label>
+                    <Editor 
+                        value={dataForm.causasraiz}
+                        onTextChange={(e) => setDataForm({...dataForm, causasraiz: e.htmlValue})}
+                        name='causasraiz'
+                        style={{
+                            height: '15em'
+                        }}
+                    />
+                    {formEnviado && !dataForm.causasraiz ? <small style={{color: 'red'}}>Por favor, comente algo acerca de las causas raíz.</small> : ''}
                 </div>
             </div>
         </div>
@@ -874,6 +969,10 @@ const CargaIncidente = () => {
                 <Fieldset toggleable legend="Incidente">
                     {renderIncidenteInfo}
                 </Fieldset>
+                <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}}></div>
+                <Fieldset toggleable legend="Análisis del incidente">
+                    {renderAnalisisIncidente}
+                </Fieldset>
                     <div className='p-grid p-fluid p-mt-4'>
                         <div className='p-md-4 p-col-1'>
 
@@ -886,6 +985,7 @@ const CargaIncidente = () => {
                                 label='Guardar'
                                 icon='pi pi-save'
                                 className='p-button-primary'
+                                disabled={ submitForm ? true : false}
                                 onClick={(e) => {
                                     setFormEnviado(true)
                                     postNewIncidente(e);
