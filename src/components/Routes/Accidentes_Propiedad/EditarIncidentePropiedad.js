@@ -16,7 +16,6 @@ import { BreadCrumb } from 'primereact/breadcrumb'
 const EditarIncidentePropiedad = () => {
     const location = useLocation();
     //
-    console.log(location);
     const { ObjectId } = Types;
     const { id } = useParams();
     let history = useHistory();
@@ -51,7 +50,7 @@ const EditarIncidentePropiedad = () => {
     ])
     const itemsBread = [
         {label: 'Incidentes', url: `${getPathname()}/incidentes`},
-        {label: 'Editar incidente'}
+        {label: 'Editar incidente propiedad'}
     ];
     useEffect(()=>{
         if(!companies){

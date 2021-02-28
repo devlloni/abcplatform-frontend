@@ -221,7 +221,7 @@ const Appbar = (props) => {
                     <ul>
                     
                       <li key={CriptoRandomString({length: 10, type: 'numeric'})} className='sidenav-li'>
-                        <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/persona/configuraciones'>
+                        <Link onClick={(e=> clickOnSidenav(e))} className='item-nav' to='/incidentes/configuraciones'>
                         <i className='fa fa-cog'></i>
                         Configurar
                         </Link>

@@ -9,6 +9,7 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import useWindowSize from '../../../hooks/useWindowSize';
 import { shortId, shortTitle } from '../../../helpers/shortStringId';
+import Swal from 'sweetalert2';
 const AccidentesPersona = () => {
     
     let history = useHistory();
@@ -38,7 +39,6 @@ const AccidentesPersona = () => {
         }else{
             return showToast('error', '¡Oops!', 'Ocurrió un error desconocido en el servidor, por favor, informe a su webmaster.');
         }
-        console.log(resp.data);
     }
 
     const showToast = (severityValue, summaryValue, detailValue) => {   
@@ -53,8 +53,30 @@ const AccidentesPersona = () => {
         history.push(`/incidentes/persona/${e._id}`);
     }
 
-    const deleteIncidente = e => {
-
+    const deleteIncidente = async e => {
+        Swal.fire({
+            title: 'Confirmación de ELIMINACIÓN de incidente.',
+            text: `Al aceptar, confirma la eliminación permanente del incidente titulado <b>${e.titulo}</b>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Borrar',
+            cancelButtonText: 'No, conservar'
+          }).then(async (result) => {
+            if (result.value) {
+                const resp = await clienteAxios.post('/incidentespersona/delete', {id: e._id});
+                if(resp.status === 200){
+                    getIncidentes();
+                    return showToast('success', 'Eliminado.', 'El registro fué removido con éxito.');
+                }else{
+                    return showToast('warning', 'Atención!', 'Ocurrió un error, notificarlo.');
+                }
+                
+            // For more information about handling dismissals please visit
+            // https://sweetalert2.github.io/#handling-dismissals
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+              return Swal.fire('¡Okey!', 'El incidente está a salvo y no fué eliminado.', 'warning');
+            }
+          })
     }
 
     //* Components
