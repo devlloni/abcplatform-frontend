@@ -228,7 +228,7 @@ const Inicio = () => {
                     <div className='p-grid'>
                         <div className='p-col-4'>
                                 <div className='card'>
-                                    <p style={{fontSize: '1.5em'}}>Gráfico de inspecciones 2020</p>
+                                    <p style={{fontSize: '1.5em'}}>Gráfico de inspecciones 2021</p>
                                     <br />
                                     <Chart 
                                         style={{paddingBottom: '2%'}}
@@ -240,7 +240,7 @@ const Inicio = () => {
                         </div>
                         <div className='p-col-4'>
                                 <div className='card'>
-                                <p style={{fontSize: '1.5em'}}>Gráfico de capacitaciones 2020</p>
+                                <p style={{fontSize: '1.5em'}}>Gráfico de capacitaciones 2021</p>
                                 <br />
                                 <Chart 
                                 style={{paddingBottom: '2%'}}
@@ -251,7 +251,7 @@ const Inicio = () => {
                         </div>
                         <div className='p-col-4'>
                                 <div className='card'>
-                                <p style={{fontSize: '1.5em'}}>Gráfico de empleados 2020</p>
+                                <p style={{fontSize: '1.5em'}}>Gráfico de empleados 2021</p>
                                 <br />
                                 <Chart 
                                 style={{paddingBottom: '2%'}}
