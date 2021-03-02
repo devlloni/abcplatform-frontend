@@ -15,6 +15,8 @@ import styled from 'styled-components';
 import { Toast } from 'primereact/toast';
 import { Fieldset } from 'primereact/fieldset';
 import { Editor } from 'primereact/editor';
+import crs from 'crypto-random-string';
+import cryptoRandomString from 'crypto-random-string';
 
 const Divisor = styled.hr`
     margin-top: '1.5em';
@@ -357,21 +359,24 @@ const CargaIncidente = () => {
         }
         else{
             if(typeof(empleado) === 'object'){
-                let codigo = 'lksajdflkas';
-                setDataForm({
-                    ...dataForm,
-                    usuario: empleado._id,
-                    nombre: empleado.nombreCompleto,
-                    compania: empleado.compania,
-                    codigo: codigo
-                })
+                let codigo = 'dsaxax';
+                
                  //!Handle companie
                 let companiaSeleccionada = companias.filter(comp=>{
                     return comp._id === empleado.compania
                 });
                 if(companiaSeleccionada.length>0){
+                    let code= `ip-${companiaSeleccionada[0].razonSocial.substr(0,[3]).toLowerCase()}-${cryptoRandomString({length: 5, type:'numeric'})}`
+                    setDataForm({
+                        ...dataForm,
+                        usuario: empleado._id,
+                        nombre: empleado.nombreCompleto,
+                        compania: empleado.compania,
+                        codigo: code
+                    });
                     setCompania(companiaSeleccionada[0]);
                     getDataByCompanie(companiaSeleccionada[0]._id);
+                   
                     
                 }else{
                    return
@@ -479,9 +484,9 @@ const CargaIncidente = () => {
                         <InputText 
                             name='_id'
                             placeholder='Código'
-                            // value={
-                            //     selectedEmpleado && (selectedEmpleado._id !== undefined || selectedEmpleado._id !== null ) ? selectedEmpleado._id : ''
-                            // }
+                            value={
+                                dataForm.codigo
+                            }
                             disabled={true}
                         />
                     </div>
