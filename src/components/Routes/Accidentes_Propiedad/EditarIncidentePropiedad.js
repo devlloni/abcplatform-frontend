@@ -359,7 +359,7 @@ const EditarIncidentePropiedad = () => {
                         style={{width: '90%' ,marginLeft: '5%', marginRight: '5%', marginBottom: '2em'}}
                     />
                     <Button 
-                        label='Cancelar'
+                        label='Salir'
                         icon='pi pi-times'
                         className='button p-button-warning'
                         onClick={(e) => history.push('/incidentes/')}
