@@ -245,7 +245,7 @@ const CausasGestion = ({showToast}) => {
                                 id='nombrecausasgestion'
                                 className={classNames({ 'p-invalid': enviado && !formData.nombrecausasgestion })}
                                 onChange={(e) => onInputChange(e)}
-                                placeholder="Campo1"
+                                placeholder="Nombre de Causa de gestión"
                             />
                             {enviado && !nombrecausasgestion && <small className="p-invalid">El nombre es obligatorio.</small>}
                         </div>
