@@ -74,7 +74,7 @@ const CausasInmediatas = ({showToast}) => {
         }
     }
     const handleNewData = async () => {
-        if(nombrecausasinmediatas && nombrecausasinmediatas.length > 4){
+        if(nombrecausasinmediatas){
             if(formData._id){
                 return handleEdit();
             }else{

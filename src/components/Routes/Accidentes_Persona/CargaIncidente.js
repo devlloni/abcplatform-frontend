@@ -8,6 +8,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
 import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar'
+import { Checkbox } from 'primereact/checkbox'
 import { ScrollPanel } from 'primereact/scrollpanel';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment';
@@ -27,6 +28,9 @@ const Divisor = styled.hr`
 const CargaIncidente = () => {
     let history = useHistory();
     const [ sucursal, setSucursal ] = useState('');
+    const [ diagnosticos, setDiagnosticos] = useState([
+        {naturalezalesion: '', zonacuerpo: ''}
+    ])
     const [ dataForm, setDataForm ] = useState({
         nombre: '',
         usuario: '',
@@ -60,7 +64,11 @@ const CargaIncidente = () => {
         causasraiz: '',
         causasinmediatas: '',
         causasbasicas: '',
-        causasgestion: ''
+        causasgestion: '',
+        descripcioncausainmediata: '',
+        diagnostico: [
+            { naturalezalesion: '', zonacuerpo: ''}
+        ]
 
     });
     const [ submitForm, setSubmitForm ] = useState(false);
@@ -198,24 +206,28 @@ const CargaIncidente = () => {
             
             !dataForm.forma || dataForm.forma.trim() === '' ||
             !dataForm.agentematerial || dataForm.agentematerial.trim() === '' ||
-            !dataForm.naturaleza || dataForm.naturaleza.trim() === '' ||
-            !dataForm.zonacuerpo || dataForm.zonacuerpo.trim() === '' ||
-            !dataForm.fechaalta ||
+            // !dataForm.naturaleza || dataForm.naturaleza.trim() === '' ||
+            // !dataForm.zonacuerpo || dataForm.zonacuerpo.trim() === '' ||
+            // !dataForm.fechaalta ||
             // !dataForm.codigo || dataForm.codigo.trim() === '' ||
             !dataForm.titulo || dataForm.titulo.trim() === '' ||
             !dataForm.investigacion || dataForm.investigacion.trim() === '' ||
             !dataForm.causasraiz || dataForm.causasraiz.trim() === '' ||
             !dataForm.causasinmediatas || dataForm.causasinmediatas.trim() === '' ||
             !dataForm.causasbasicas || dataForm.causasbasicas.trim() === '' ||
-            !dataForm.causasinmediatas || dataForm.causasinmediatas.trim() === '' 
+            !dataForm.causasinmediatas || dataForm.causasinmediatas.trim() === '' ||
+            !diagnosticos[0].zonacuerpo || !diagnosticos[0].naturalezalesion
         ){
             return showToast('error', '¡Revisa bien!', 'Verifica que todos los campos estén completos.');
         }else{
             setSubmitForm(true);
-            const resp = await clienteAxios.post('/incidentespersona/', dataForm);
+            let dat = dataForm;
+            dat.diagnosticos = diagnosticos;
+            console.log(dat);
+            const resp = await clienteAxios.post('/incidentespersona/', dat);
             if(resp.status === 200){
                 console.log(resp.data);
-                showToast('success', '¡Exito!', `La incidencia a ${dataForm.nombre} fué cargada con éxito.`)
+                showToast('success', '¡Exito!', `La incidencia a ${dat.nombre} fué cargada con éxito.`)
                 setTimeout(()=>{
                     return history.push(`/incidentes/persona/${resp.data.incidente._id}`)
                     // console.log(`enviando a /incidentes/persona/${resp.data.incidente._id}`);
@@ -352,9 +364,18 @@ const CargaIncidente = () => {
         });
     }
 
+    const handleNewDiagnostico = () => {
+        setDiagnosticos([...diagnosticos, {naturalezalesion: '', zonacuerpo: ''}]);
+    }
+
+    const handleDeleteDiagnostico = index => {
+        let diagnos = [...diagnosticos];
+        let diagnosRemoved = diagnos.filter((d, i) => i !== index);
+        setDiagnosticos(diagnosRemoved);
+    }
+
     const onChangeEmpleado = async empleado => {
         if(!companias || !empleado){
-            console.log(empleado);
             return;
         }
         else{
@@ -388,12 +409,7 @@ const CargaIncidente = () => {
                         //
                         if(sucursalObtained || sucursalObtained !== null || sucursalObtained !== undefined){
                             setSucursal(sucursalObtained);
-                            // setTimeout(()=> {
-                            //     setDataForm({
-                            //         ...dataForm,
-                            //         sucursal: sucursalObtained._id
-                            //     });
-                            // }, 1000)
+                            
                         }
                     }
                 }
@@ -568,6 +584,7 @@ const CargaIncidente = () => {
                 <InputText 
                     name='numerosiniestro'
                     value={dataForm.numerosiniestro}
+                    disabled={ dataForm.denuncia === 'Denunciado' ? false : true}
                     onChange={(e)=> {
                         setDataForm({
                             ...dataForm,
@@ -717,7 +734,7 @@ const CargaIncidente = () => {
                     options={sinoConfig}
                     name='trabajohabitual'
                 />
-                {formEnviado && !dataForm.trabajohabitual ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                
             </div>
         </div>
     );
@@ -733,7 +750,7 @@ const CargaIncidente = () => {
                     onChange={(e)=> onChangeFechaAlta(e)}
                     name='fechaalta'
                 />
-                {formEnviado && !dataForm.fechaalta ? <small style={{color: 'red'}}>La fecha de alta es obligatoria.</small> : ''}
+                {/* {formEnviado && !dataForm.fechaalta ? <small style={{color: 'red'}}>La fecha de alta es obligatoria.</small> : ''} */}
             </div>
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='diasbaja'>Dias de baja</label>
@@ -810,6 +827,65 @@ const CargaIncidente = () => {
         </div>
     );
 
+    const handleChangeNaturaleza = (e,i) => {
+        //e=event || i=index of diagnosticos[]
+        let diagnosCopy = [...diagnosticos];
+        diagnosCopy[i].naturalezalesion = e.target.value;
+        setDiagnosticos(diagnosCopy);
+    }
+
+    const handleChangeZona = (e,i) => {
+        //e=event || i=index of diagnosticos[]
+        let diagnosCopy = [...diagnosticos];
+        diagnosCopy[i].zonacuerpo = e.target.value;
+        setDiagnosticos(diagnosCopy);
+    }
+
+    const RenderDiagnostico = ({index}) => {
+        return(
+            <div>
+            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+                <div className='p-sm-6 p-col-12'>
+                    <label htmlFor='naturaleza'>Naturaleza de la lesión {index}</label>
+                    <Dropdown 
+                        name='naturaleza'
+                        options={naturalezaLesion}
+                        disabled= { naturalezaLesion ? false : true}
+                        value={diagnosticos[index].naturalezalesion}
+                        onChange={(e)=> handleChangeNaturaleza(e, index)}
+                    />
+                    {formEnviado && !diagnosticos[index].naturalezalesion ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                </div>
+                <div className='p-sm-6 p-col-12'>
+                    <label htmlFor='zonacuerpo'>Zona de cuerpo afectada</label>
+                    <Dropdown 
+                        name='zonacuerpo'
+                        options={zonaCuerpo}
+                        value={diagnosticos[index].zonacuerpo}
+                        onChange={(e) => handleChangeZona(e, index)}
+                    />
+                    {formEnviado && !diagnosticos[index].zonacuerpo ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                </div>
+            </div>
+            <div className='p-grid p-fluid'>
+                <div className='p-md-6 p-col-12'>
+                    
+                </div>
+                <div className='p-md-4 p-col-12'></div>
+                <div className='p-md-2 p-col-12'>
+                    <Button 
+                        label='Eliminar diagnóstico'
+                        icon='pi pi-times'
+                        className='p-button-warning'
+                        disabled={ index === 0 ? true : false}
+                        onClick={(e) => handleDeleteDiagnostico(index)}
+                    />
+                </div>
+            </div>
+        </div>
+        )
+    }
+
     const renderDiagnostico1 = (
         <div>
             
@@ -852,7 +928,7 @@ const CargaIncidente = () => {
                     {formEnviado && !dataForm.titulo ? <small style={{color: 'red'}}>El título del incidente es obligatorio.</small> : ''}
                 </div>
                 <div className='p-md-12 p-col-12'>
-                    <label htmlFor='investigacion'>Descripción de la investigación</label>
+                    <label htmlFor='investigacion'>Descripción del incidente</label>
                     <Editor 
                         value={dataForm.investigacion}
                         onTextChange={(e) => setDataForm({...dataForm, investigacion: e.htmlValue})}
@@ -879,6 +955,15 @@ const CargaIncidente = () => {
                         placeholder="Sin elección"
                     />
                     {formEnviado && !dataForm.causasinmediatas ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                </div>
+                <div className='p-col-12'>
+                    <label htmlFor='causasinmediatas'>Causas inmediatas</label>
+                    <InputText 
+                        name="descripcioncausainmediata"
+                        value={dataForm.descripcioncausainmediata}
+                        onChange={(e)=> setDataForm({...dataForm, descripcioncausainmediata: e.target.value})}
+                        placeholder="Describe brevemente la causa inmediata realizada."
+                    />
                 </div>
                 <div className='p-col-12'>
                     <label htmlFor='causasbasicas'>Causas basicas</label>
@@ -959,16 +1044,18 @@ const CargaIncidente = () => {
                 <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}} className='p-text-center'>
                     <h5> Diagnósticos </h5>
                 </div>
-                <Fieldset toggleable legend='Diagnóstico #1'>
-                    {renderDiagnostico1}
-                </Fieldset>
+                { diagnosticos.map((d,i)=> {
+                    return (<Fieldset key={i} toggleable legend={`Diagnóstico #${i}`}>
+                    <RenderDiagnostico index={i} />
+                    </Fieldset>)
+                })}
                 <Button 
                     style={{width: '90%', marginTop: '1%', marginBottom: '1%', marginLeft: '5%', marginRight: '5%'}}
                     label='Agregar diagnostico'
                     icon='pi pi-plus'
                     color='#444'
-                    disabled={true}
-                    onClick={(e) => e.preventDefault()}
+                    // disabled={true}
+                    onClick={(e) => handleNewDiagnostico()}
                 />
 
                 <Fieldset toggleable legend="Incidente">
@@ -980,10 +1067,10 @@ const CargaIncidente = () => {
                 </Fieldset>
                     <div className='p-grid p-fluid p-mt-4'>
                         <div className='p-md-4 p-col-1'>
-
+                            
                         </div>
                         <div className='p-md-4 p-col-1'>
-
+                           
                         </div>
                         <div className='p-md-4 p-col-12'>
                             <Button 

@@ -72,7 +72,7 @@ const ZonasAfectadas = ({showToast}) => {
         }
     }
     const handleNewData = async () => {
-        if(nombrezonacuerpo && nombrezonacuerpo.length > 4 ){
+        if(nombrezonacuerpo){
             if(formData._id){
                 return handleEdit();
             }else{

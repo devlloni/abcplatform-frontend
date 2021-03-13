@@ -119,16 +119,17 @@ const Companie = () => {
 
             }
             else{
-                try {
+                
                     const respuesta = await clienteAxios.post('/companias', companie);
                     if(respuesta.status === 200){
-                        test();
+                        // test();
                         setEnviado(false);
                         setCompanie(emptyCompanie);
                         setCompanieDialog(false);
+                        getCompanies();
                         return showToast('success', 'Success message', '¡Compañía agregada a la base de datos!');
                     }
-                } catch (error) {
+                    else{
                     return showToast('error', 'Error message', 'Error inesperado, por favor intentelo nuevamente en unos minutos.');
                 }
             }
@@ -169,8 +170,8 @@ const Companie = () => {
             let id = selectedCompanie._id;
             const respuesta = await clienteAxios.post(`/companias/delete`, {id});
             if(respuesta.status === 200){
-                test();
                 setDeleteDialog(false);
+                getCompanies();
                 return showToast('success', 'Success message', `${selectedCompanie.razonSocial} fué eliminada satisfactoriamente. (${selectedCompanie._id})`)
             }
             else{

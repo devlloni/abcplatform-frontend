@@ -74,7 +74,7 @@ const NaturalezaLesion = ({showToast}) => {
     }
 
     const handleNewData = async () => {
-        if(nombrenaturalezalesion && nombrenaturalezalesion.length > 4 ){
+        if(nombrenaturalezalesion){
             if(formData._id){
                 return handleEdit();
             }else{
