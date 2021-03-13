@@ -1125,7 +1125,7 @@ const EditarIncidente = () => {
                     <div className='p-grid p-fluid p-mt-4'>
                         <div className='p-md-4 p-col-1'>
                             <Button 
-                            label='Cancelar'
+                            label='Salir'
                             icon='pi pi-times'
                             className='button p-button-warning'
                             onClick={(e) => history.push('/incidentes/')}

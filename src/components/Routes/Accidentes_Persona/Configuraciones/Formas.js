@@ -246,7 +246,7 @@ const Formas = ({showToast}) => {
                                 id='nombreaccidente'
                                 className={classNames({ 'p-invalid': enviado && !formData.nombreaccidente })}
                                 onChange={(e) => onInputChange(e)}
-                                placeholder="Nombre del accidente"
+                                placeholder="Nombre de la forma"
                             />
                             {enviado && !nombreaccidente && <small className="p-invalid">Nombre es obligatorio.</small>}
                         </div>

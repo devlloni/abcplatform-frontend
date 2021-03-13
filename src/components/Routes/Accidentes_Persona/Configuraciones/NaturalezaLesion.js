@@ -244,7 +244,7 @@ const NaturalezaLesion = ({showToast}) => {
                                 id='nombrenaturalezalesion'
                                 className={classNames({ 'p-invalid': enviado && !formData.nombrenaturalezalesion })}
                                 onChange={(e) => onInputChange(e)}
-                                placeholder="nombrenaturalezalesion"
+                                placeholder="Nombre de la naturaleza de la lesión"
                             />
                             {enviado && !nombrenaturalezalesion && <small className="p-invalid">Nombre es obligatorio.</small>}
                         </div>
