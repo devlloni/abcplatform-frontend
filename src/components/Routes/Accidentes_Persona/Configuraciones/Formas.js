@@ -76,7 +76,7 @@ const Formas = ({showToast}) => {
     }
 
     const handleNewData = async () => {
-        if(nombreaccidente && nombreaccidente.length > 4){
+        if(nombreaccidente){
             if(formData._id){
                 return handleEdit();
             }

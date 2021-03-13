@@ -8,17 +8,26 @@ import { Editor } from 'primereact/editor';
 import { FileUpload } from 'primereact/fileupload';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
+import { Checkbox } from 'primereact/checkbox'
 
 const CargaIncidentePropiedad = (props) => {
-    console.log(props);
+    const baseUrl = 'http://localhost:5005/api';
     let history = useHistory();
     const { id } = useParams();
     const myToast = useRef(null);
+    const uploader = useRef(null);
+    const [ enviarMail, setEnviarMail ] = useState(false)
     const [ editando, setEditando ] = useState(false);
     const [ companies, setCompanies ] = useState(null);
     const [ sucursales, setSucursales ] = useState(null);
+    const [ imagesSelected, setImagesSelected ] = useState(0);
     const [ lugares, setLugares ] = useState(null);
     const [ sectores, setSectores ] = useState(null);
+    const [ filesUploaded, setFilesUploaded ] = useState(null);
+    const [ yaSubioImagenes, setYaSubioImagenes ] = useState(false);
+    const [ pdfSelected, setPdfSelected ] = useState(0);
+    const [ pdfUploaded, setPdfUploaded ] = useState(null);
+    const [ yaSubioPdf, setYaSubioPdf ] = useState(false);
     const [ dataForm, setDataForm ] = useState({
         empresa: '',
         lugar: '',
@@ -117,6 +126,18 @@ const CargaIncidentePropiedad = (props) => {
         }
     }
 
+    const handleUploadedFiles = e => {
+        let json = JSON.parse(e.xhr.response);
+        setFilesUploaded(json);
+        setYaSubioImagenes(true);
+    }
+
+    const handleUploadedPdfs = e => {
+        let json = JSON.parse(e.xhr.response);
+        setPdfUploaded(json);
+        setYaSubioPdf(true);
+    }
+
     const onChangeCompanie = e => {
         setDataForm({
             ...dataForm,
@@ -132,6 +153,18 @@ const CargaIncidentePropiedad = (props) => {
                 showToast('error', '¡Error!', 'Complete todos los campos primero.');
             }
         else{
+            //ABC-40
+            if(!filesUploaded){
+                dataForm.imagenes = [];
+            }else{
+                dataForm.imagenes = filesUploaded;
+            }
+            console.log(dataForm)
+            if(!pdfUploaded){
+                dataForm.files = [];
+            }else{
+                dataForm.files = pdfUploaded;
+            }
             const resp = await clienteAxios.post('/incidentespropiedad/', dataForm);
             if(resp.status === 200 && resp.data.incidente){
                 showToast('success', '¡Perfecto!', 'Incidente a la propiedad cargado con éxito.');
@@ -260,24 +293,52 @@ const CargaIncidentePropiedad = (props) => {
                 <div className='p-md-5 p-col-12'>
                     <h6 style={{paddingBottom: '0.4em'}}>Anexar archivo PDF</h6>
                     {/* <label htmlFor='pdfFiles'>Anexar archivo PDF</label> */}
+                    {yaSubioPdf && <p style={{color: 'green'}}>¡Archivos subidos con éxito!</p>}
                     <FileUpload 
+                        disabled={yaSubioPdf}
                         mode='advanced'
-                        name='pdfFiles'
-                        url='./'
-                        accept='.pdf'
+                        multiple
+                        name={pdfSelected > 1 ? 'pdfs' : 'pdf'}
+                        url={ pdfSelected > 1 ? `${baseUrl}/files/multiple` : `${baseUrl}/files/simple`}
+                        accept='application/pdf'
+                        onSelect={(e)=>{
+                            setPdfSelected(pdfSelected + e.files.length);
+                        }}
+                        onRemove={(e)=> setPdfSelected(pdfSelected - 1)}
+                        onUpload={(e)=> {
+                            setPdfSelected(0);
+                            handleUploadedPdfs(e)
+                        }}
+                        chooseLabel="Elegir archivos"
+                        uploadLabel="Subir archivos"
                     />
-                </div>        
+                    {yaSubioPdf && <small style={{color: 'red'}}>Ya subiste los PDF, ahora solo queda guardar el incidente.</small>}
+                </div>         
                 <div className='p-md-2 p-col-12'></div>
                 <div className='p-md-5 p-col-12'>
-                    <h6 style={{paddingBottom: '0.4em'}}>Anexar archivo PDF</h6>
+                    <h6 style={{paddingBottom: '0.4em'}}>Anexar Imagenes</h6>
                     {/* <label htmlFor='imageFiles'>Anexar imagenes</label> */}
+                    {yaSubioImagenes && <p style={{color: 'green'}}>¡Imagenes subidas con éxito!</p>}
                     <FileUpload 
+                        disabled={yaSubioImagenes}
                         mode='advanced'
-                        name='imageFiles'
-                        url='./'
+                        name={imagesSelected > 1 ? 'images' : 'image'}
+                        url={ imagesSelected > 1 ? `${baseUrl}/imagenes/multiple` : `${baseUrl}/imagenes/simple`}
                         multiple
+                        maxFileSize="1000000"
                         accept='image/*'
+                        onSelect={(e)=>{
+                            setImagesSelected(imagesSelected + e.files.length);
+                        }}
+                        onRemove={(e)=> setImagesSelected(imagesSelected - 1)}
+                        onUpload={(e)=> {
+                            setImagesSelected(0);
+                            handleUploadedFiles(e)
+                        }}
+                        chooseLabel="Elegir archivos"
+                        uploadLabel="Subir archivos"
                     />
+                    {yaSubioImagenes && (<small style={{color: 'red'}}> Ya subiste las imagenes, ahora solo queda guardar el incidente. </small>)}
                 </div>     
         </div>
     )
@@ -317,12 +378,28 @@ const CargaIncidentePropiedad = (props) => {
                     <RenderWhiteSpace 
                         pb='4.5em'
                     />
-                    <Button 
-                        label='Guardar'
-                        icon='pi pi-plus'
-                        onClick={(e) => handleSubmitForm(e)}
-                        style={{width: '90%' ,marginLeft: '5%', marginRight: '5%', marginBottom: '2em'}}
-                    />
+                    <div className='p-grid p-fluid'>
+                        <div className='p-md-1 p-col-1'></div>
+                        <div className='p-md-3 p-col-3'>
+                            <Checkbox 
+                                    name='enviarMail'
+                                    checked={enviarMail}
+                                    onChange={(e)=> {
+                                        setEnviarMail(!enviarMail);
+                                        console.log('images selected: ', imagesSelected)
+                                    }}
+                                />
+                            <label style={{fontSize: '1em', marginLeft: '0.2em', color: 'black'}} htmlFor='enviarMail'>Envíar mail a empleados de la empresa</label>
+                        </div>
+                        <div className='p-md-8 p-col-8'>
+                            <Button 
+                            label='Guardar'
+                            icon='pi pi-plus'
+                            onClick={(e) => handleSubmitForm(e)}
+                            style={{width: '90%' ,marginLeft: '5%', marginRight: '5%', marginBottom: '2em'}}
+                            />
+                        </div>
+                    </div>
                 </div>
                 {renderBlankSpace}
             </ScrollPanel>

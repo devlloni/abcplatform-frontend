@@ -15,7 +15,6 @@ const AccidentesVista = () => {
     );
     const ItemActive = item => {
         let comp = item?.item?.component;
-        console.log(comp);
         switch(comp){
             case 'IncidentesPropiedad':
                 return <AccidentesPropiedadHome />

@@ -12,6 +12,7 @@ import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { Types } from 'mongoose';
 import { BreadCrumb } from 'primereact/breadcrumb'
+import { Galleria } from 'primereact/galleria';
 
 const EditarIncidentePropiedad = () => {
     const location = useLocation();
@@ -23,6 +24,7 @@ const EditarIncidentePropiedad = () => {
     const [ incidente, setIncidente ] = useState(null);
     const [ editando, setEditando ] = useState(false);
     const [ companies, setCompanies ] = useState(null);
+    const [ imagenes, setImagenes ] = useState(null);
     const [ sucursales, setSucursales ] = useState(null);
     const [ lugares, setLugares ] = useState(null);
     const [ sectores, setSectores ] = useState(null);
@@ -52,6 +54,22 @@ const EditarIncidentePropiedad = () => {
         {label: 'Incidentes', url: `${getPathname()}/incidentes`},
         {label: 'Editar incidente propiedad'}
     ];
+
+    const responsiveOptions = [
+        {
+            breakpoint: '1024px',
+            numVisible: 5
+        },
+        {
+            breakpoint: '768px',
+            numVisible: 3
+        },
+        {
+            breakpoint: '560px',
+            numVisible: 1
+        }
+    ];
+
     useEffect(()=>{
         if(!companies){
             getCompanies()
@@ -83,12 +101,16 @@ const EditarIncidentePropiedad = () => {
     const getIncidente = async (id) => {
         const resp = await clienteAxios.get(`/incidentespropiedad/${id}`);
         let incidenteDb = resp.data.incidente[0];
-        console.log('incidente db');
-        console.log(incidenteDb);
-        console.log('data form:');
-        console.log(dataForm);
+        
         if(incidenteDb){
             setIncidente(incidenteDb);
+            if(incidenteDb.imagenes?.length > 0){
+                let ar = [];
+                for(let i = 0; i < incidenteDb.imagenes.length; i++){
+                    ar.push({src: incidenteDb.imagenes[i]});
+                }
+                setImagenes(ar);
+            }
             setDataForm({
                 ...dataForm,
                 empresa: incidenteDb.compania,
@@ -109,7 +131,6 @@ const EditarIncidentePropiedad = () => {
 
     const getCompanies = async () => {
         const resp = await clienteAxios.get('/companias');
-        console.log(resp.data);
         let dataCompanies = [];
         let companias = resp.data;
         for(let i = 0; i < companias.length; i++){
@@ -310,7 +331,57 @@ const EditarIncidentePropiedad = () => {
                         multiple
                         accept='image/*'
                     />
-                </div>     
+                </div>   
+        </div>
+    );
+    const itemTemplateIMG = item => {
+        return <img src={item.src} alt='a' style={{width: '100%'}} />
+    }
+    const indicatorTemplate  = index => {
+        return (
+            <span className='indicator-text'>
+                {index + 1}
+            </span>
+        )
+    }
+    const renderImagesIf = (
+        <div className=''>
+            <div className='p-grid p-fluid'>
+                <div className='p-md-5 p-col-12'>
+                <div className='p-text-center' style={{marginBottom: '1em'}}>
+                    <p style={{fontSize: '1.5emm'}}> Archivos PDF anexos.</p>
+                </div>
+                {incidente?.files?.length > 0 ?
+                    incidente.files.map((f,i) => 
+                    <div className='p-grid p-fluid'>
+                        <div className='p-col-12'>
+                        Archivo {i} | <a href={f}>{f}</a>
+                        </div>
+                    </div>
+                    )
+                    :
+                    null}
+                </div>
+                <div className='p-md-1 p-col-12'></div>
+                <div className='p-md-1 p-col-12'></div>
+                <div className='p-md-5 p-col-12'>
+                    {incidente?.imagenes?.length > 0 ?
+                    (
+                        <Galleria
+                            value={imagenes}
+                            item={itemTemplateIMG}
+                            showIndicators
+                            responsiveOptions={responsiveOptions}
+                            showThumbnails={false}
+                            style={{ marginRight: '0.8em' }}
+                        >
+
+                        </Galleria>
+                    )
+                    :
+                    null}
+                </div>
+                </div>  
         </div>
     )
 
@@ -348,6 +419,10 @@ const EditarIncidentePropiedad = () => {
                     {renderSecondLine}
                     <hr style={{marginTop: '1.5em', marginBottom: '1.5em'}}/>
                     {renderThirdLine}
+                    <RenderWhiteSpace 
+                        pb='4.5em'
+                    />
+                    {renderImagesIf}
                     <RenderWhiteSpace 
                         pb='4.5em'
                     />

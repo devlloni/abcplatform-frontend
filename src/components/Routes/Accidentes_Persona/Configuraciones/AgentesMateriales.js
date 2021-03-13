@@ -71,7 +71,7 @@ const AgentesMateriales = ({showToast}) => {
     }
     //Completar data
     const handleNewData = async () => {
-        if(nombreagentematerial && nombreagentematerial.length > 4){
+        if(nombreagentematerial){
             if(formData._id){
                 return handleEdit();
             }else{

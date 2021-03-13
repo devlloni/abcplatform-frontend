@@ -17,6 +17,7 @@ import { Toast } from 'primereact/toast';
 import { Types } from 'mongoose';
 import { Fieldset } from 'primereact/fieldset';
 import { BreadCrumb } from 'primereact/breadcrumb';
+import LoadingPage from '../../Layout/LoadingPage';
 
 const Divisor = styled.hr`
     margin-top: '1.5em';
@@ -33,7 +34,10 @@ const EditarIncidente = () => {
     const itemsBread = [
         {label: 'Incidentes', url: `${getPathname()}/incidentes`},
         {label: 'Editar incidente persona'}
-    ]
+    ];
+    const [ diagnosticos, setDiagnosticos] = useState([
+        {naturalezalesion: '', zonacuerpo: ''}
+    ]);
     const [ sucursal, setSucursal ] = useState('');
     const [ dataForm, setDataForm ] = useState({
         nombre: '',
@@ -67,6 +71,7 @@ const EditarIncidente = () => {
         investigacion: ''
 
     });
+    const [ allData, setAllData ] = useState(null);
     const [ incidente, setIncidente ] = useState(null);
     const [ editando, setEditando ] = useState(false);
     const [ sucursales, setSucursales ] = useState(null);
@@ -118,20 +123,16 @@ const EditarIncidente = () => {
         if(!companias){
             getCompanies();
         }
-        if(!formas || !naturalezaLesion || !agentesMateriales || !zonaCuerpo){
-            getGeneralData();
-        }
         if(empleados && incidente){
             let empleado = empleados.find(em => em._id === incidente._id);
-            // let empleadoName = empleado.nombre + ' ' + empleado.apellido;
-            // setDataForm({
-            //     ...dataForm,
-            //     nombre: empleadoName
-            // });
-            console.log(empleados);
-            console.log(empleado);
         }
     }, [, empleados, incidente]);
+
+    useEffect(()=>{
+        if(!allData){
+            getGeneralData();
+        }
+    }, [, allData])
 
     //! GET IF IS EDITING OR CREATING NEW
 
@@ -156,13 +157,17 @@ const EditarIncidente = () => {
         const resp = await clienteAxios.get(`/incidentespersona/${id}`);
         let incidenteDb = resp.data.incidente[0];
         if(incidenteDb){
-            console.log('dias baja: ', incidenteDb.diasbaja);
             setIncidente(incidenteDb);
+            // setSelectedEmpleado(incidenteDb.usuario)
+            if(incidenteDb.diagnosticos){
+                return setDiagnosticos(incidenteDb.diagnosticos);
+            }
             getSucursalesEmpresa(incidenteDb.compania);
             if(incidenteDb.usuario !== null && incidenteDb.usuario !== undefined){
                 getEmpleadoAndCompanie(incidenteDb.usuario);
             }
         }
+        return;
     }
 
     const getEmpleadoAndCompanie = async empleado => {
@@ -171,12 +176,16 @@ const EditarIncidente = () => {
         if(resp.data.length > 0){
             let e = resp.data[0];
             e.nombreCompleto = `${e.nombre} ${e.apellido}`;
+            
             let companies = await getCompanies(); 
+            setDataForm({
+                ...dataForm,
+                usuario: e.nombreCompleto
+            })
             if(companies.length > 0){
                 onChangeEmpleado(e, companies);
                 setSelectedEmpleado(e);
             }
-            // onChangeEmpleado(e);
         }
     }
 
@@ -246,6 +255,17 @@ const EditarIncidente = () => {
         // setPuestos(dataPuestos);
     }
 
+
+    const handleUpdateIncidente = async e => {
+        e.preventDefault();
+        if(incidente._id){
+            const resp = await clienteAxios.put(`/incidentespersona/${incidente._id}`, incidente);
+            console.log(resp.data);
+        }else{
+            return;
+        }
+    }
+
     const postNewIncidente = async e => {
         e.preventDefault();
         //!Validaciones
@@ -260,6 +280,11 @@ const EditarIncidente = () => {
     const getGeneralData = async () => {
         const resp = await clienteAxios.get('/generaldata/allData');
         let allResp = resp.data;
+        setAllData(resp.data);
+        return handleGeneralData(allResp);
+    }
+
+    const handleGeneralData = (allResp) => {
         let formas = allResp.formas;
         let agentesmateriales = allResp.agentesmateriales;
         let zonacuerpo = allResp.zonacuerpo;
@@ -347,7 +372,7 @@ const EditarIncidente = () => {
             restartDataGral();
         }
     }
-    
+
     const onChangeFechaAlta = e => {
         if(e.value && dataForm.fechaincidente){
             let fechaAlta = moment(e.value);
@@ -374,12 +399,38 @@ const EditarIncidente = () => {
         setPuestos(null);
     }
 
+    const handleNewDiagnostico = () => {
+        setDiagnosticos([...diagnosticos, {naturalezalesion: '', zonacuerpo: ''}]);
+    }
+
+    const handleDeleteDiagnostico = index => {
+        let diagnos = [...diagnosticos];
+        let diagnosRemoved = diagnos.splice(index, 1);
+        console.log(diagnosRemoved);
+        setDiagnosticos(diagnosRemoved);
+    }
+
+    const handleChangeNaturaleza = (e,i) => {
+        //e=event || i=index of diagnosticos[]
+        let diagnosCopy = [...diagnosticos];
+        diagnosCopy[i].naturalezalesion = e.target.value;
+        setDiagnosticos(diagnosCopy);
+    }
+
+    const handleChangeZona = (e,i) => {
+        //e=event || i=index of diagnosticos[]
+        let diagnosCopy = [...diagnosticos];
+        diagnosCopy[i].zonacuerpo = e.target.value;
+        setDiagnosticos(diagnosCopy);
+    }
+
     const handleCamposChange = e => {
         setDataForm({
             ...dataForm,
             [e.target.name] : e.target.value
         });
     }
+    
 
     const onChangeEmpleado = async ( empleado, companies ) => {
         if(!companies || !empleado){
@@ -856,6 +907,51 @@ const EditarIncidente = () => {
         </div>
     );
 
+    const RenderDiagnostico = ({index}) => {
+        return(
+            <div>
+            <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+                <div className='p-sm-6 p-col-12'>
+                    <label htmlFor='naturaleza'>Naturaleza de la lesión {index}</label>
+                    <Dropdown 
+                        name='naturaleza'
+                        options={naturalezaLesion}
+                        disabled= { naturalezaLesion ? false : true}
+                        value={diagnosticos[index].naturalezalesion}
+                        onChange={(e)=> handleChangeNaturaleza(e, index)}
+                    />
+                    {formEnviado && !diagnosticos[index].naturalezalesion ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                </div>
+                <div className='p-sm-6 p-col-12'>
+                    <label htmlFor='zonacuerpo'>Zona de cuerpo afectada</label>
+                    <Dropdown 
+                        name='zonacuerpo'
+                        options={zonaCuerpo}
+                        value={diagnosticos[index].zonacuerpo}
+                        onChange={(e) => handleChangeZona(e, index)}
+                    />
+                    {formEnviado && !diagnosticos[index].zonacuerpo ? <small style={{color: 'red'}}>Este dato es obligatorio.</small> : ''}
+                </div>
+            </div>
+            <div className='p-grid p-fluid'>
+                <div className='p-md-6 p-col-12'>
+                    
+                </div>
+                <div className='p-md-4 p-col-12'></div>
+                <div className='p-md-2 p-col-12'>
+                    <Button 
+                        label='Eliminar diagnóstico'
+                        icon='pi pi-times'
+                        className='p-button-warning'
+                        disabled={ index === 0 ? true : false}
+                        onClick={(e) => handleDeleteDiagnostico(index)}
+                    />
+                </div>
+            </div>
+        </div>
+        )
+    }
+
     const renderDiagnostico1 = (
         <div>
             <div className='p-grid p-fluid p-mr-1 p-ml-1'>
@@ -965,8 +1061,13 @@ const EditarIncidente = () => {
         </div>
     )
 
+
     return ( 
         <div className='p-mt-4'>
+            {/* CONDITION HERE */}
+            { empleados  ? 
+            (
+                <div>
             <BreadCrumb model={itemsBread} home={{icon: 'pi pi-home', url: `${getPathname()}/`}} />
             <Toast 
                 ref={myToast}
@@ -1000,17 +1101,18 @@ const EditarIncidente = () => {
                 <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}} className='p-text-center'>
                     <h5> Diagnósticos </h5>
                 </div>
-                <Fieldset toggleable legend='Diagnóstico #1'>
-                    {renderDiagnostico1}
-                </Fieldset>
+                { diagnosticos.map((d,i)=> {
+                    return (<Fieldset key={i} toggleable legend={`Diagnóstico #${i}`}>
+                    <RenderDiagnostico index={i} />
+                    </Fieldset>)
+                })}
 
                 <Button 
                     style={{width: '90%', marginTop: '1%', marginBottom: '1%', marginLeft: '5%', marginRight: '5%'}}
                     label='Agregar diagnostico'
                     icon='pi pi-plus'
                     color='#444'
-                    disabled={true}
-                    onClick={(e) => e.preventDefault()}
+                    onClick={(e) => handleNewDiagnostico()}
                 />
 
                 <Fieldset toggleable legend="Incidente">
@@ -1035,14 +1137,15 @@ const EditarIncidente = () => {
                         </div>
                         <div className='p-md-4 p-col-12'>
                             <Button 
-                                label='Guardar'
+                                label='Actualizar'
                                 icon='pi pi-save'
                                 className='p-button-primary'
                                 onClick={(e) => {
                                     setFormEnviado(true)
-                                    postNewIncidente(e);
+                                    // handleUpdateIncidente(e);
+                                    console.log(selectedEmpleado)
                                 }}
-                                disabled={true}
+                                
                             />
                         </div>
                     </div>
@@ -1050,6 +1153,10 @@ const EditarIncidente = () => {
                 
             </div>
             </ScrollPanel>
+            </div>
+            ):
+            (<LoadingPage />)
+            }
         </div>
      );
 }
