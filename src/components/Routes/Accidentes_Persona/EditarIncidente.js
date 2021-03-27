@@ -11,7 +11,8 @@ import { Calendar } from 'primereact/calendar'
 import { Editor } from 'primereact/editor';
 import { ScrollPanel } from 'primereact/scrollpanel';
 import clienteAxios from '../../../config/clienteAxios';
-import moment from 'moment';
+// import moment from 'moment';
+import moment from '../../../plugins/moment';
 import styled from 'styled-components';
 import { Toast } from 'primereact/toast';
 import { Types } from 'mongoose';
@@ -198,11 +199,13 @@ const EditarIncidente = () => {
         });
         setEmpleados(data2);
     }
+
     const getCompanies = async () => {
         const resp = await clienteAxios.get('/companias');
         setCompanias(resp.data)
         return resp.data;
     }
+
     const getSucursalesEmpresa = async (id) => {
         const resp = await clienteAxios.get(`/branchoffices/companie/${id}`);
         let sucursales = resp.data.branchoffices;
@@ -648,7 +651,7 @@ const EditarIncidente = () => {
                     name='fechadenuncia'
                     dateFormat='dd/mm/yy'
                     disabled={ dataForm.fechaincidente ? false : true }
-                    locale={localeEs}
+                    locale={'es'}
                     minDate={ dataForm.fechaincidente }
                     value={ incidente ? incidente.fechadenuncia : ''}
                     onChange={(e) => setDataForm({
@@ -686,7 +689,7 @@ const EditarIncidente = () => {
                     placeholder='Fecha de accidente'
                     name='fechaincidente'
                     dateFormat='dd/mm/yy'
-                    locale={localeEs}
+                    locale={'es'}
                     value={ incidente ? new Date(incidente.fechaincidente) : ''}
                     onChange={(e)=>setDataForm({...dataForm, fechaincidente: e.value})}
                 />
@@ -823,7 +826,7 @@ const EditarIncidente = () => {
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='fechaalta'>Fecha de alta</label>
                 <Calendar 
-                    locale={localeEs}
+                    locale={'es'}
                     dateFormat='dd/mm/yy'
                     value={ incidente ? new Date(incidente.fechaalta) : ''}
                     onChange={(e)=> onChangeFechaAlta(e)}

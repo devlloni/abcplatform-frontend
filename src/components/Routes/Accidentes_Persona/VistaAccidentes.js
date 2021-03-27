@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useHistory } from 'react-router-dom'
-import clienteAxios from '../../../config/clienteAxios';
 import { Toast } from 'primereact/toast';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -10,37 +9,42 @@ import { Button } from 'primereact/button';
 import useWindowSize from '../../../hooks/useWindowSize';
 import { shortId, shortTitle } from '../../../helpers/shortStringId';
 import Swal from 'sweetalert2';
+import incidentContext from '../../../context/Incidentes/incidentContext';
+import ReactExport from 'react-export-excel'
+import moment from 'moment';
+import { Checkbox } from 'primereact/checkbox';
+
+const ExcelFile = ReactExport.ExcelFile;
+const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
 const AccidentesPersona = () => {
     
     let history = useHistory();
 
+    const { incidentesPersona, msg, loadingIncidentesPersona, getIncidentesPersona, deleteIncidentePersona } = React.useContext(incidentContext)
+
     const myToast = useRef(null);
     const { width } = useWindowSize();
 
-    const [ incidentesPersona, setIncidentesPersona ] = useState(null);
+    // const [ incidentesPersona, setIncidentesPersona ] = useState(null);
     const [ globalFilter, setGlobalFilter ] = useState('');
     const [ windowSize, setWindowSize ] = useState(width);
     useEffect( ()=>{
-        if(!incidentesPersona){
-            getIncidentes();
-        }
         setWindowSize(width);
     }, [, width])
 
-    //*Funcs
-    const getIncidentes = async () => {
-        const resp = await clienteAxios.get('/incidentespersona/');
-        if(resp.status === 200){
-            if(!resp.data){
-                return showToast('error', '¡Oops!', 'Error en el servidor, no pudimos obtener los incidentes de la base de datos.');
-            }else{
-                setIncidentesPersona(resp.data);
-            }
-        }else{
-            return showToast('error', '¡Oops!', 'Ocurrió un error desconocido en el servidor, por favor, informe a su webmaster.');
-        }
-    }
+    const [ selectedIncidents, setSelectedIncidents ] = useState([]);
 
+    useEffect(()=>{
+        if(!incidentesPersona && loadingIncidentesPersona){
+            console.log('effect run')
+            getIncidentesPersona();
+        }
+    }, [, incidentesPersona, loadingIncidentesPersona])
+
+    // TEST
+    
     const showToast = (severityValue, summaryValue, detailValue) => {   
         myToast.current.show({severity: severityValue, summary: summaryValue, detail: detailValue});   
     }
@@ -63,20 +67,32 @@ const AccidentesPersona = () => {
             cancelButtonText: 'No, conservar'
           }).then(async (result) => {
             if (result.value) {
-                const resp = await clienteAxios.post('/incidentespersona/delete', {id: e._id});
-                if(resp.status === 200){
-                    getIncidentes();
-                    return showToast('success', 'Eliminado.', 'El registro fué removido con éxito.');
-                }else{
-                    return showToast('warning', 'Atención!', 'Ocurrió un error, notificarlo.');
-                }
-                
-            // For more information about handling dismissals please visit
-            // https://sweetalert2.github.io/#handling-dismissals
+                deleteIncidentePersona(e._id);
             } else if (result.dismiss === Swal.DismissReason.cancel) {
               return Swal.fire('¡Okey!', 'El incidente está a salvo y no fué eliminado.', 'warning');
             }
           })
+    }
+
+    const handleDelete = async e => {
+        console.log(selectedIncidents);
+        // setSelectedIncidents([]);
+    }
+
+    //! PDF export
+
+    const generateExcel = () => {
+        if(incidentesPersona){
+            console.log(incidentesPersona);
+        }
+    }
+
+    const generateData = () => {
+
+    }
+
+    const generateHeaders = () => {
+
     }
 
     //* Components
@@ -98,11 +114,37 @@ const AccidentesPersona = () => {
             </div>
         )
     }
+
+    const handleCheck = id => {
+        if(selectedIncidents.indexOf(id, 0) === -1){
+            setSelectedIncidents([...selectedIncidents, id])
+        }else{
+            let data = [...selectedIncidents];
+            let i = data.indexOf(id, 0);
+            data.splice(i, 1);
+            setSelectedIncidents(data);
+        }
+    }
+    
+
     const tituloBody = rawData => {
+        let isChecked = false;
+        if(selectedIncidents.indexOf(rawData._id, 0) !== -1){
+            isChecked = true
+        }else{
+            isChecked = false;
+        }
+        
         return(
             <div>
-                <span className='p-column-title'></span>
+                <span className='p-column-title' style={{marginRight: '0.5em'}}>
+                    <Checkbox 
+                        checked={isChecked}
+                        onChange={() => handleCheck(rawData._id)}
+                    />
+                </span>
                 { width < 600 ? shortTitle(rawData.titulo) : rawData.titulo}
+
             </div>
         )
     }
@@ -134,30 +176,65 @@ const AccidentesPersona = () => {
                     marginTop: '1em',
                     marginLeft: '0.3em'
                 }}>
-                    <div className='p-col-3'>
+                    <div className='p-col-12 p-md-3'>
                         <Button 
                         label="Nuevo" 
                         icon={ width < 320 ? '' : "pi pi-plus" }
-                        className="p-button-success p-mr-2" 
+                        className="p-button-info p-mr-2" 
                         onClick={(e)=> newIncidente()} 
                         />
                     </div>
-                    <div className='p-col-3'>
+                    <div className='p-col-12 p-md-3'>
                         <Button 
                             label="Eliminar" 
                             icon="pi pi-trash" 
                             className="p-button-danger" 
-                            disabled={true}
-                            onClick={(e)=> e.preventDefault()}
+                            disabled={ selectedIncidents.length > 0 ? false : true }
+                            onClick={(e)=> handleDelete()}
                         />
                     </div>
-                    <div className='p-col-3 p-offest-3'>
-                            <Button 
-                                label="Exportar" 
-                                icon="pi pi-upload" 
-                                className="p-button-help" 
-                                onClick={(e)=>e.preventDefault()} 
-                            />
+                    <div className='p-col-12 p-md-3'>
+                        <Button 
+                            label='Exportar a PDF'
+                            className='p-button-help'
+                            disabled={true}
+                        />
+                    </div>
+                    <div className='p-col-12 p-md-3'>
+                            <ExcelFile
+                                element={
+                                    <Button 
+                                    label="Exportar a Excel" 
+                                    icon="pi pi-save" 
+                                    className="p-button-success" 
+                                    // disabled={true}
+                                    onClick={(e)=> e.preventDefault()}
+                                    />
+                                }
+                                filename={`[ABC] IncidentesPersona_${moment(new Date()).format('l')}`}
+                            >
+                                <ExcelSheet data={incidentesPersona} name="Incidentes persona" >
+                                    <ExcelColumn 
+                                        label="_id" 
+                                        value="_id"
+                                        style={ {width: {wcx: 40}} }
+                                        cellStyle={ {width: {wcx: 40}} }
+                                    />
+                                    <ExcelColumn 
+                                        label="titulo" 
+                                        value="titulo"
+                                        style={ {width: {wcx: 40}} }
+                                    />
+                                    <ExcelColumn 
+                                        label="Companía"
+                                        value='compania'
+                                    />
+                                    <ExcelColumn 
+                                        label="Denuncia"
+                                        value="denuncia"
+                                    />
+                                </ExcelSheet>
+                            </ExcelFile>
                     </div>
                 </div>
                 {incidentesPersona ? (

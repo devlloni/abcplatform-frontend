@@ -16,6 +16,7 @@ import { Column } from 'primereact/column';
 import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Calendar } from 'primereact/calendar';
+import { confirmDialog } from 'primereact/confirmdialog';
 import { ScrollPanel } from 'primereact/scrollpanel';
 //!!!!!AGREGAR NUM_LEGAJO PARA EMPLEADO
 
@@ -133,6 +134,20 @@ const Empleados = () => {
 
     //?  FUNCTIONS
 
+    const IsInAnotherCompany = empleado => {
+        if(!empleados) return false;
+        let condition = false;
+        for(let i = 0; i < empleados.length; i++){
+            if((empleado.cuil === empleados[i].cuil) && (empleado.compania !== empleados[i].compania)){
+                condition = true;
+                break;
+            }
+        }
+        console.log(condition);
+        return condition;
+        // return true;
+    }
+
     const reiniciarEmpleado = () => {
         setEmpleado({
             id: null,
@@ -174,6 +189,19 @@ const Empleados = () => {
         
     }
 
+    const confirmOnSameCompanie = (emp) => {
+        confirmDialog({
+            message: 'El empleado se encuentra en otra compañía, ¿Desea continuar de todas formas?',
+            header: 'Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            accept: () => handlePostNew(emp),
+            reject: () => rejectFunc()
+        });
+    }
+    const rejectFunc = () => {
+
+    }
+
     const submitNewEmpleado = async () => {
         setEnviado(true);
         if( 
@@ -193,22 +221,26 @@ const Empleados = () => {
             if(empleado._id){
                 return submitEditEmpleado(empleado);
             }else{
-                const token = localStorage.getItem('token');
                 empleado.administrador = 0;
-                try {
-                    const respuesta = await clienteAxios.post('/empleados', empleado, { headers: {
-                        'x-auth-token': token
-                    }});
-                    if(respuesta.status === 200){
-                        getEmpleados();
-                        setEnviado(false);
-                        setEmpleadoDialog(false);
-                        setEmpleado(false);
-                        return showToast('success', '¡Empleado ingresado!', 'El impleado fué ingresado correctamente.');
-                    }
-                } catch (error) {
-                    return showToast('error', 'Error message', 'Error inesperado, por favor intentelo nuevamente en unos minutos.');
+                if(IsInAnotherCompany(empleado)){
+                    confirmOnSameCompanie(empleado);
                 }
+            }
+    }
+
+    const handlePostNew = async emp => {
+        const token = localStorage.getItem('token');
+        const respuesta = await clienteAxios.post('/empleados', emp, { headers: {
+                'x-auth-token': token
+            }});
+            if(respuesta.status === 200){
+                getEmpleados();
+                setEnviado(false);
+                setEmpleadoDialog(false);
+                setEmpleado(false);
+                return showToast('success', '¡Empleado ingresado!', 'El impleado fué ingresado correctamente.');
+            }else{
+                return showToast('error', 'Error message', 'Error inesperado, por favor intentelo nuevamente en unos minutos.');
             }
     }
 
@@ -416,6 +448,7 @@ const Empleados = () => {
                                 <Button 
                                 label="Nuevo" 
                                 icon={ width < 320 ? '' : "pi pi-plus" }
+                                disabled={!empleados ? true : false}
                                 className="p-button-success p-mr-2" 
                                 onClick={(e)=> showEmpleadoDialog()} 
                                 />
@@ -442,7 +475,7 @@ const Empleados = () => {
                         <DataTable 
                             value={empleados} 
                             className="p-datatable-responsive-demo" 
-                            paginator rows={4} 
+                            paginator rows={10} 
                             header={TableHeader}
                             globalFilter={globalFilter}
                         >
@@ -547,7 +580,9 @@ const Empleados = () => {
                         disabled={empleado._id || !empleado.userRole || getRolName(empleado.userRole) === "Empleado" ? true : false}
                         type={empleado._id ? 'password' : 'text'}
                         id="password" name="password" value={empleado.password} onChange={(e) => onInputChange(e)} 
-                        required className={classNames({ 'p-invalid': enviado && !empleado.password })} />
+                        required 
+                        className={classNames({ 'p-invalid': ((enviado && !empleado.password) && getRolName(empleado.userRole) === "Administrador") })} 
+                        />
                         {/* {enviado && !empleado.password && <small className="p-invalid">La contraseña es requerida.</small>} */}
                         </div>
                 </div>

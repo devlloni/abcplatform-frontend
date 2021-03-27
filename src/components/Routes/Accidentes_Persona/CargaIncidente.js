@@ -193,7 +193,8 @@ const CargaIncidente = () => {
             !dataForm.lugar || dataForm.lugar.trim() === '' ||
             !dataForm.denuncia || dataForm.denuncia.trim() === '' ||
             !dataForm.tipo || dataForm.tipo.trim() === '' ||
-            !dataForm.numerosiniestro || dataForm.numerosiniestro.trim() === '' ||
+            // volver dello
+            ((!dataForm.numerosiniestro || dataForm.numerosiniestro.trim() === '') && dataForm.denuncia === 'Denunciado') ||
             !dataForm.fechadenuncia || 
             !dataForm.fechaincidente || 
             !dataForm.horaincidente || 
@@ -568,7 +569,7 @@ const CargaIncidente = () => {
                     name='fechadenuncia'
                     dateFormat='dd/mm/yy'
                     disabled={ dataForm.fechaincidente ? false : true }
-                    locale={localeEs}
+                    locale={'es'}
                     minDate={ dataForm.fechaincidente }
                     value={dataForm.fechadenuncia}
                     onChange={(e) => setDataForm({
@@ -580,21 +581,21 @@ const CargaIncidente = () => {
                 {dataForm.fechaincidente ? '' : <small>Recuerde que primero debe setear la fecha del incidente</small>}
             </div>
             <div className='p-sm-6 p-col-12'>
-                <label htmlFor='numerosiniestro'>Nro. de siniestro</label>
+                <label htmlFor='numerosiniestro'>N° de denuncia</label>
                 <InputText 
                     name='numerosiniestro'
                     value={dataForm.numerosiniestro}
-                    disabled={ dataForm.denuncia === 'Denunciado' ? false : true}
+                    // disabled={ dataForm.denuncia === 'Denunciado' ? false : true}
                     onChange={(e)=> {
                         setDataForm({
                             ...dataForm,
                             numerosiniestro: e.target.value
                         });
                     }}
-                    placeholder='N° de siniestro'
+                    placeholder='N° de denuncia'
                     type='number'
                 />
-                {formEnviado && !dataForm.numerosiniestro ? <small style={{color: 'red'}}>El número de siniestro es obligatorio.</small> : ''}
+                {formEnviado && (!dataForm.numerosiniestro && dataForm.denuncia === 'Denunciado') ? <small style={{color: 'red'}}>El número de siniestro es obligatorio.</small> : ''}
             </div>
         </div>
     )
@@ -607,7 +608,7 @@ const CargaIncidente = () => {
                     placeholder='Fecha de accidente'
                     name='fechaincidente'
                     dateFormat='dd/mm/yy'
-                    locale={localeEs}
+                    locale={'es'}
                     value={dataForm.fechaincidente}
                     onChange={(e)=>setDataForm({...dataForm, fechaincidente: e.value})}
                 />
@@ -744,7 +745,7 @@ const CargaIncidente = () => {
             <div className='p-sm-3 p-col-12'>
                 <label htmlFor='fechaalta'>Fecha de alta</label>
                 <Calendar 
-                    locale={localeEs}
+                    locale={'es'}
                     dateFormat='dd/mm/yy'
                     value={dataForm.fechaalta}
                     onChange={(e)=> onChangeFechaAlta(e)}

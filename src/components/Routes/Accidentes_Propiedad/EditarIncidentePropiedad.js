@@ -305,6 +305,21 @@ const EditarIncidentePropiedad = () => {
         </div>
     )
 
+    const emptyTemplate  = (
+        <div className='p-grid p-fluid'>
+            {incidente?.files ? 
+            (
+                incidente.files.map((i,index) => 
+                    <div key={index} className=''>
+                        <img src={incidente.files[i]} />
+                        {incidente.files[i]}
+                    </div>    
+                )
+            ):
+            null}
+        </div>
+    )
+
     const renderThirdLine = (
         <div className='p-grid p-fluid p-ml-1 p-mr-1'>
             <Toast 
@@ -322,11 +337,12 @@ const EditarIncidentePropiedad = () => {
                 </div>        
                 <div className='p-md-2 p-col-12'></div>
                 <div className='p-md-5 p-col-12'>
-                    <h6 style={{paddingBottom: '0.4em'}}>Anexar archivo PDF</h6>
+                    <h6 style={{paddingBottom: '0.4em'}}>Anexar archivos de imagen</h6>
                     {/* <label htmlFor='imageFiles'>Anexar imagenes</label> */}
                     <FileUpload 
                         mode='advanced'
                         name='imageFiles'
+                        emptyTemplate={emptyTemplate}
                         url='./'
                         multiple
                         accept='image/*'
@@ -334,6 +350,8 @@ const EditarIncidentePropiedad = () => {
                 </div>   
         </div>
     );
+
+
     const itemTemplateIMG = item => {
         return <img src={item.src} alt='a' style={{width: '100%'}} />
     }
