@@ -9,6 +9,7 @@ const localeEs = {
     dayNamesMin: ['D','L','M','X','J','V','S'],
     weekHeader: 'Semana',
     firstDay: 1,
+    firstDayOfWeek: 1,
     isRTL: false,
     showMonthAfterYear: false,
     yearSuffix: '',

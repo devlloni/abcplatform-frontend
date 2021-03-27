@@ -1,5 +1,7 @@
 import React, {Fragment, useRef} from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import { locale, addLocale } from 'primereact/api';
+import { localeEs } from './helpers/locale';
 import { Toast } from 'primereact/toast';
 //Prueba. Story/1/Fix
 //!Styles
@@ -51,6 +53,9 @@ import Register from './components/Auth/Register/Register';
 import Appbar from './components/Layout/Appbar';
 //* Context & States
 import AuthState from './context/auth/authState';
+import IncidentState from './context/Incidentes/incidentState';
+
+addLocale('es', localeEs);
 
 function App() {
   const myToast = useRef(null);
@@ -67,6 +72,7 @@ function App() {
         <Route path='/login' exact component={Login} />
         <Route path='/registro' exact component={Register} />
         <Appbar />
+        <IncidentState>
           <Switch>
             <RutaPrivada exact path='/' component={Inicio} />
             {/* <Route path='/' exact component={Inicio} /> */}
@@ -90,6 +96,7 @@ function App() {
             <RutaPrivada component={NotFound} />
             {/* <RutaPrivadaAdmin path='/companies' exact adminRequired={4}  component={Companies} /> */}
           </Switch>
+          </IncidentState>
         </BrowserRouter>
       </AuthState>
     </Fragment>

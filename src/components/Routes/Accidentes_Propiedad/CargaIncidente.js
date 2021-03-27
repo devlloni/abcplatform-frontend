@@ -9,9 +9,10 @@ import { FileUpload } from 'primereact/fileupload';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { Checkbox } from 'primereact/checkbox'
+import { baseUrl } from '../../../config/clienteAxios';
 
 const CargaIncidentePropiedad = (props) => {
-    const baseUrl = 'http://localhost:5005/api';
+    // const baseUrl = 'http://localhost:5005/
     let history = useHistory();
     const { id } = useParams();
     const myToast = useRef(null);
