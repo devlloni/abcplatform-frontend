@@ -10,6 +10,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar'
 import { Checkbox } from 'primereact/checkbox'
 import { ScrollPanel } from 'primereact/scrollpanel';
+import { FileUpload } from 'primereact/fileupload';
 import clienteAxios from '../../../config/clienteAxios';
 import moment from 'moment';
 import styled from 'styled-components';
@@ -18,6 +19,7 @@ import { Fieldset } from 'primereact/fieldset';
 import { Editor } from 'primereact/editor';
 import crs from 'crypto-random-string';
 import cryptoRandomString from 'crypto-random-string';
+import { baseUrl } from '../../../config/clienteAxios';
 
 const Divisor = styled.hr`
     margin-top: '1.5em';
@@ -27,6 +29,7 @@ const Divisor = styled.hr`
 
 const CargaIncidente = () => {
     let history = useHistory();
+    const [ sendMail, setSendMail ] = useState(false);
     const [ sucursal, setSucursal ] = useState('');
     const [ diagnosticos, setDiagnosticos] = useState([
         {naturalezalesion: '', zonacuerpo: ''}
@@ -91,6 +94,14 @@ const CargaIncidente = () => {
     const [ causasBasicas, setCausasBasicas ] = useState(null);
     const [ causasGestion, setCausasGestion ] = useState(null);
     const [ causasInmediatas, setCausasInmediatas ] = useState(null);
+
+    //Files
+    const [ filesUploaded, setFilesUploaded ] = useState(null);
+    const [ yaSubioImagenes, setYaSubioImagenes ] = useState(false);
+    const [ pdfSelected, setPdfSelected ] = useState(0);
+    const [ pdfUploaded, setPdfUploaded ] = useState(null);
+    const [ yaSubioPdf, setYaSubioPdf ] = useState(false);
+    const [ imagesSelected, setImagesSelected ] = useState(0);
 
     const [ filteredEmpleados, setFilteredEmpleados ] = useState(null);
     //*
@@ -221,6 +232,18 @@ const CargaIncidente = () => {
         ){
             return showToast('error', '¡Revisa bien!', 'Verifica que todos los campos estén completos.');
         }else{
+            //ABC-40
+            if(!filesUploaded){
+                dataForm.imagenes = [];
+            }else{
+                dataForm.imagenes = filesUploaded;
+            }
+            console.log(dataForm)
+            if(!pdfUploaded){
+                dataForm.files = [];
+            }else{
+                dataForm.files = pdfUploaded;
+            }
             setSubmitForm(true);
             let dat = dataForm;
             dat.diagnosticos = diagnosticos;
@@ -349,6 +372,18 @@ const CargaIncidente = () => {
                 fechaalta: e.value
             });
         }
+    }
+
+    const handleUploadedFiles = e => {
+        let json = JSON.parse(e.xhr.response);
+        setFilesUploaded(json);
+        setYaSubioImagenes(true);
+    }
+
+    const handleUploadedPdfs = e => {
+        let json = JSON.parse(e.xhr.response);
+        setPdfUploaded(json);
+        setYaSubioPdf(true);
     }
 
     const restartDataGral = () => {
@@ -828,6 +863,61 @@ const CargaIncidente = () => {
         </div>
     );
 
+    const RenderEightLine = (
+        <div className='p-grid p-fluid p-mr-1 p-ml-1'>
+            <div className='p-md-5 p-col-12'>
+                    <h6 style={{paddingBottom: '0.4em'}}>Anexar archivo PDF</h6>
+                    {/* <label htmlFor='pdfFiles'>Anexar archivo PDF</label> */}
+                    {yaSubioPdf && <p style={{color: 'green'}}>¡Archivos subidos con éxito!</p>}
+                    <FileUpload 
+                        disabled={yaSubioPdf}
+                        mode='advanced'
+                        multiple
+                        name={pdfSelected > 1 ? 'pdfs' : 'pdf'}
+                        url={ pdfSelected > 1 ? `${baseUrl}/files/multiple` : `${baseUrl}/files/simple`}
+                        accept='application/pdf'
+                        onSelect={(e)=>{
+                            setPdfSelected(pdfSelected + e.files.length);
+                        }}
+                        onRemove={(e)=> setPdfSelected(pdfSelected - 1)}
+                        onUpload={(e)=> {
+                            setPdfSelected(0);
+                            handleUploadedPdfs(e)
+                        }}
+                        chooseLabel="Elegir archivos"
+                        uploadLabel="Subir archivos"
+                    />
+                    {yaSubioPdf && <small style={{color: 'red'}}>Ya subiste los PDF, ahora solo queda guardar el incidente.</small>}
+                </div>         
+                <div className='p-md-2 p-col-12'></div>
+                <div className='p-md-5 p-col-12'>
+                    <h6 style={{paddingBottom: '0.4em'}}>Anexar Imagenes</h6>
+                    {/* <label htmlFor='imageFiles'>Anexar imagenes</label> */}
+                    {yaSubioImagenes && <p style={{color: 'green'}}>¡Imagenes subidas con éxito!</p>}
+                    <FileUpload 
+                        disabled={yaSubioImagenes}
+                        mode='advanced'
+                        name={imagesSelected > 1 ? 'images' : 'image'}
+                        url={ imagesSelected > 1 ? `${baseUrl}/imagenes/multiple` : `${baseUrl}/imagenes/simple`}
+                        multiple
+                        maxFileSize="1000000"
+                        accept='image/*'
+                        onSelect={(e)=>{
+                            setImagesSelected(imagesSelected + e.files.length);
+                        }}
+                        onRemove={(e)=> setImagesSelected(imagesSelected - 1)}
+                        onUpload={(e)=> {
+                            setImagesSelected(0);
+                            handleUploadedFiles(e)
+                        }}
+                        chooseLabel="Elegir archivos"
+                        uploadLabel="Subir archivos"
+                    />
+                    {yaSubioImagenes && (<small style={{color: 'red'}}> Ya subiste las imagenes, ahora solo queda guardar el incidente. </small>)}
+                </div>     
+        </div>
+    )
+
     const handleChangeNaturaleza = (e,i) => {
         //e=event || i=index of diagnosticos[]
         let diagnosCopy = [...diagnosticos];
@@ -843,11 +933,12 @@ const CargaIncidente = () => {
     }
 
     const RenderDiagnostico = ({index}) => {
+        let numMostrar = index + 1;
         return(
             <div>
             <div className='p-grid p-fluid p-mr-1 p-ml-1'>
                 <div className='p-sm-6 p-col-12'>
-                    <label htmlFor='naturaleza'>Naturaleza de la lesión {index}</label>
+                    <label htmlFor='naturaleza'>Naturaleza de la lesión {numMostrar}</label>
                     <Dropdown 
                         name='naturaleza'
                         options={naturalezaLesion}
@@ -1039,14 +1130,14 @@ const CargaIncidente = () => {
                 <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}}></div>
                 <Fieldset toggleable legend='Codificación de datos de siniestro'>
                     {renderSevenLine}
-                </Fieldset>
+                </Fieldset> 
 
-                {/* <hr style={{marginTop: '1.5em'}} className='p-mb-2'/> */}
                 <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}} className='p-text-center'>
                     <h5> Diagnósticos </h5>
                 </div>
                 { diagnosticos.map((d,i)=> {
-                    return (<Fieldset key={i} toggleable legend={`Diagnóstico #${i}`}>
+                    let numMostrar = i + 1;
+                    return (<Fieldset key={i} toggleable legend={`Diagnóstico #${numMostrar}`}>
                     <RenderDiagnostico index={i} />
                     </Fieldset>)
                 })}
@@ -1066,12 +1157,27 @@ const CargaIncidente = () => {
                 <Fieldset toggleable legend="Análisis del incidente">
                     {renderAnalisisIncidente}
                 </Fieldset>
+                <Fieldset toggleable legend="Anexar archivos al incidente">
+                    {RenderEightLine}
+                </Fieldset>
+                    <div className='p-grid p-fluid p-mt-4'>
+                        <div className='p-md-6 p-col-12'></div>
+                        <div className='p-md-6 p-col-12'>
+                            
+                        </div>
+                    </div>
                     <div className='p-grid p-fluid p-mt-4'>
                         <div className='p-md-4 p-col-1'>
                             
                         </div>
-                        <div className='p-md-4 p-col-1'>
-                           
+                        <div className='p-md-4 p-col-12' style={{alignItems: 'right', textAlign: 'right', paddingRight: '0.3em'}}>
+                        <label htmlFor='sendMail'> Envíar mail a responsables. </label>
+                            <Checkbox 
+                                tooltip='Notificar por mail a responsables de la empresa'
+                                id="sendMail"
+                                value={sendMail}
+                                onChange={(e) => setSendMail(!sendMail)}
+                            />
                         </div>
                         <div className='p-md-4 p-col-12'>
                             <Button 

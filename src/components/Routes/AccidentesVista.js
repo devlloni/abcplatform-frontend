@@ -8,7 +8,7 @@ const AccidentesVista = () => {
         // {label: 'Inicio', icon: 'pi pi-fw pi-home', component: 'Home'},
         {label: 'Incidentes Persona', icon: 'fas fa-digital-tachograph', component: 'IncidentesPersona'},
         {label: 'Incidentes Propiedad', icon: 'fas fa-list', component: 'IncidentesPropiedad'},
-        {label: 'Incidentes Ambiente', icon: 'fas fa-file-medical-alt', component: 'IncidentesAmbiente'}
+        //{label: 'Incidentes Ambiente', icon: 'fas fa-file-medical-alt', component: 'IncidentesAmbiente'}
     ]);
     const [ activeItem, setActiveItem ] = React.useState(
     
