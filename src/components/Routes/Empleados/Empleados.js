@@ -205,7 +205,7 @@ const Empleados = () => {
     const submitNewEmpleado = async () => {
         setEnviado(true);
         if( 
-            // !email  || email.length === 0 ||
+            (!email  || email.length === 0) && (getRolName(empleado.userRole) !== 'Empleado') ||
             !nombre || nombre.length === 0 || 
             !apellido || apellido.length === 0 ||
             // !password || password.length === 0 ||
@@ -224,6 +224,8 @@ const Empleados = () => {
                 empleado.administrador = 0;
                 if(IsInAnotherCompany(empleado)){
                     confirmOnSameCompanie(empleado);
+                }else{
+                    handlePostNew(empleado)
                 }
             }
     }
@@ -568,8 +570,8 @@ const Empleados = () => {
                     <div className="p-col-12 p-md-6 p-field">
                         <label htmlFor="email">E-Mail</label>
                         <InputText id="email" type="email" name="email" value={empleado.email} onChange={(e) => onInputChange(e)} required 
-                        className={classNames({ 'p-invalid': enviado && !empleado.email })} />
-                        {/* {enviado && !empleado.email && <small className="p-invalid">El email es requerido.</small>} */}
+                        className={classNames({ 'p-invalid': enviado && (!empleado.email && getRolName(empleado.userRole) !== 'Empleado') })} />
+                        {enviado && (!empleado.email && getRolName(empleado.userRole) !== 'Empleado') && <small className="p-invalid">El email es requerido.</small>}
                     </div>
                     <div className="p-col-12 p-md-6 p-field">
                         <label htmlFor="password">Contraseña</label>

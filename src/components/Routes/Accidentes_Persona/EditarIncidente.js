@@ -18,7 +18,10 @@ import { Toast } from 'primereact/toast';
 import { Types } from 'mongoose';
 import { Fieldset } from 'primereact/fieldset';
 import { BreadCrumb } from 'primereact/breadcrumb';
-import LoadingPage from '../../Layout/LoadingPage';
+import { Galleria } from 'primereact/galleria';
+import { Skeleton } from 'primereact/skeleton';
+// import LoadingPage from '../../Layout/LoadingPage';
+import LoadingPage from '../../Layout/Loader'
 
 const Divisor = styled.hr`
     margin-top: '1.5em';
@@ -78,8 +81,10 @@ const EditarIncidente = () => {
     const [ sucursales, setSucursales ] = useState(null);
     const [ selectedEmpleado, setSelectedEmpleado ] = useState(null);
     const [ empleados, setEmpleados ] = useState(null);
+    const [ cargandoEmpleados, setCargandoEmpleados ] = useState(true);
     const [ companias, setCompanias ] = useState(null);
     //
+    const [ imagenes, setImagenes ] = useState(null);
     const [ enviarMail, setEnviarMail ] = useState(false);
     const [ formEnviado, setFormEnviado ] = useState(false);
     //
@@ -116,16 +121,29 @@ const EditarIncidente = () => {
     const [ sinoConfig, setSinoConfig ] = useState([
         {label: 'Si', value: true},
         {label: 'No', value: false}
-    ])
+    ]);
+
+    const responsiveOptions = [
+        {
+            breakpoint: '1024px',
+            numVisible: 5
+        },
+        {
+            breakpoint: '768px',
+            numVisible: 3
+        },
+        {
+            breakpoint: '560px',
+            numVisible: 1
+        }
+    ];
+
     useEffect(  ()=>{
-        if(!empleados){
+        if(!empleados && cargandoEmpleados){
             getEmpleados();
         }
         if(!companias){
             getCompanies();
-        }
-        if(empleados && incidente){
-            let empleado = empleados.find(em => em._id === incidente._id);
         }
     }, [, empleados, incidente]);
 
@@ -158,15 +176,22 @@ const EditarIncidente = () => {
         const resp = await clienteAxios.get(`/incidentespersona/${id}`);
         let incidenteDb = resp.data.incidente[0];
         if(incidenteDb){
+            console.log(incidenteDb.fechadenuncia)
+            getEmpleadoAndCompanie(incidenteDb.usuario);
             setIncidente(incidenteDb);
+            if(incidenteDb.imagenes?.length > 0){
+                let ar = [];
+                for(let i = 0; i < incidenteDb.imagenes.length; i++){
+                    ar.push({src: incidenteDb.imagenes[i]});
+                }
+                setImagenes(ar);
+            }
             // setSelectedEmpleado(incidenteDb.usuario)
             if(incidenteDb.diagnosticos){
                 return setDiagnosticos(incidenteDb.diagnosticos);
             }
             getSucursalesEmpresa(incidenteDb.compania);
-            if(incidenteDb.usuario !== null && incidenteDb.usuario !== undefined){
-                getEmpleadoAndCompanie(incidenteDb.usuario);
-            }
+            
         }
         return;
     }
@@ -188,6 +213,7 @@ const EditarIncidente = () => {
                 setSelectedEmpleado(e);
             }
         }
+        return;
     }
 
     //!Funcs
@@ -198,6 +224,7 @@ const EditarIncidente = () => {
             item.nombreCompleto = item.nombre + ' ' + item.apellido;
         });
         setEmpleados(data2);
+        return setCargandoEmpleados(false);
     }
 
     const getCompanies = async () => {
@@ -445,7 +472,8 @@ const EditarIncidente = () => {
         else{
             
             if(typeof(empleado) === 'object'){
-                console.log('el nombre completo es ', empleado.nombreCompleto)
+                let empleadoCompleto = empleado.nombre + ' ' + empleado.apellido;
+                console.log('el nombre completo es ', empleadoCompleto)
                 setDataForm({
                     ...dataForm,
                     usuario: empleado._id,
@@ -515,7 +543,7 @@ const EditarIncidente = () => {
     const renderFirstLineUser = (
         <div className='p-grid p-fluid p-mr-1 p-ml-1'>
                     <div className='p-sm-4 p-col-12'>
-                        <label htmlFor='nombreyapellido'>Nombre y apellido del empleado</label>
+                    <label htmlFor='nombreyapellido'>Nombre y apellido del empleado</label>
                         <span className="p-input-icon-right">
                             <i className="pi pi-search" />
                             <AutoComplete 
@@ -552,6 +580,15 @@ const EditarIncidente = () => {
                         />
                     </div>
                 </div>
+    )
+
+    const renderSkeletonLine = (
+        <div className='p-grid p-fluid p-mr-1 p-ml-1' style={{
+            marginTop: '0.3em',
+            marginBottom: '0.3em'
+        }}>
+            <Skeleton width="100%" height="2rem" />
+        </div>
     )
 
     const renderSecondLineUser = (
@@ -1055,6 +1092,51 @@ const EditarIncidente = () => {
                 </div>
             </div>
         </div>
+    );
+
+    const itemTemplateIMG = item => {
+        return <img src={item.src} alt='a' style={{width: '100%'}} />
+    }
+
+    const renderImagesIf = (
+        <div className=''>
+            <div className='p-grid p-fluid'>
+                <div className='p-md-5 p-col-12'>
+                <div className='p-text-center' style={{marginBottom: '1em'}}>
+                    <p style={{fontSize: '1.5emm'}}> Archivos PDF anexos.</p>
+                </div>
+                {incidente?.files?.length > 0 ?
+                    incidente.files.map((f,i) => 
+                    <div className='p-grid p-fluid'>
+                        <div className='p-col-12'>
+                        Archivo {i} | <a href={f}>{f}</a>
+                        </div>
+                    </div>
+                    )
+                    :
+                    null}
+                </div>
+                <div className='p-md-1 p-col-12'></div>
+                <div className='p-md-1 p-col-12'></div>
+                <div className='p-md-5 p-col-12'>
+                    {incidente?.imagenes?.length > 0 ?
+                    (
+                        <Galleria
+                            value={imagenes}
+                            item={itemTemplateIMG}
+                            showIndicators
+                            responsiveOptions={responsiveOptions}
+                            showThumbnails={false}
+                            style={{ marginRight: '0.8em' }}
+                        >
+
+                        </Galleria>
+                    )
+                    :
+                    null}
+                </div>
+                </div>  
+        </div>
     )
 
     const renderBlankSpace = (
@@ -1078,26 +1160,34 @@ const EditarIncidente = () => {
             <div className='p-text-center'><h4>Incidente de persona</h4></div>
             <ScrollPanel>
             <Fieldset legend='Información de la persona' toggleable>
-                {renderFirstLineUser}
-                {renderSecondLineUser}
+                {selectedEmpleado ? renderFirstLineUser : renderSkeletonLine }
+
+                {selectedEmpleado ? renderSecondLineUser : renderSkeletonLine }
             </Fieldset>
 
             <div className='p-mt-3 card'>
                 <Fieldset legend='General' toggleable>
-                    {renderFirstLine}
-
-                    {renderSecondLine}
+                {/* {selectedEmpleado ? renderFirstLine : renderSkeletonLine } */}
+                {renderFirstLine}
+                {/* {selectedEmpleado ? renderSecondLine : renderSkeletonLine } */}
+                {renderSecondLine}
                 </Fieldset>
                 <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}}></div>
                 <Fieldset legend='Información del accidente' toggleable>
+                    {/* {selectedEmpleado ? renderThirdLine : renderSkeletonLine } */}
                     {renderThirdLine}
+                    {/* {selectedEmpleado ? renderFourthyLine : renderSkeletonLine } */}
                     {renderFourthyLine}
+                    {/* {selectedEmpleado ? renderFiveLine : renderSkeletonLine } */}
                     {renderFiveLine}
+                    {/* {selectedEmpleado ? renderSixtLine : renderSkeletonLine } */}
                     {renderSixtLine}
                 </Fieldset>
                 <div style={{ marginTop: '0.7em', marginBottom: '0.7em'}}></div>
                 <Fieldset toggleable legend='Codificación de datos de siniestro'>
-                    {renderSevenLine}
+
+                {/* {selectedEmpleado ? renderSevenLine : renderSkeletonLine } */}
+                {renderSevenLine}
                 </Fieldset>
 
                 {/* <hr style={{marginTop: '1.5em'}} className='p-mb-2'/> */}
@@ -1105,7 +1195,8 @@ const EditarIncidente = () => {
                     <h5> Diagnósticos </h5>
                 </div>
                 { diagnosticos.map((d,i)=> {
-                    return (<Fieldset key={i} toggleable legend={`Diagnóstico #${i}`}>
+                    let nummostrar = i + 1;
+                    return (<Fieldset key={i} toggleable legend={`Diagnóstico #${nummostrar}`}>
                     <RenderDiagnostico index={i} />
                     </Fieldset>)
                 })}
@@ -1125,8 +1216,11 @@ const EditarIncidente = () => {
                 <Fieldset toggleable legend="Análisis del incidente">
                     {renderAnalisisIncidente}
                 </Fieldset>
+                <Fieldset toggleable legend="Archivos anexos">
+                    {renderImagesIf}
+                </Fieldset>
                     <div className='p-grid p-fluid p-mt-4'>
-                        <div className='p-md-4 p-col-1'>
+                        <div className='p-md-4 p-col-12'>
                             <Button 
                             label='Salir'
                             icon='pi pi-times'
@@ -1158,7 +1252,9 @@ const EditarIncidente = () => {
             </ScrollPanel>
             </div>
             ):
-            (<LoadingPage />)
+            (
+            <LoadingPage />
+            )
             }
         </div>
      );

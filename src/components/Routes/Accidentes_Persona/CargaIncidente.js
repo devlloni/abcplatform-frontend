@@ -206,7 +206,8 @@ const CargaIncidente = () => {
             !dataForm.tipo || dataForm.tipo.trim() === '' ||
             // volver dello
             ((!dataForm.numerosiniestro || dataForm.numerosiniestro.trim() === '') && dataForm.denuncia === 'Denunciado') ||
-            !dataForm.fechadenuncia || 
+            ((!dataForm.fechadenuncia) && (dataForm.denuncia === 'Denunciado') || (dataForm.denuncia === 'Autodenuncia')) ||
+            // !dataForm.fechadenuncia || 
             !dataForm.fechaincidente || 
             !dataForm.horaincidente || 
             !dataForm.gravedad || dataForm.gravedad.trim() === '' ||
@@ -233,29 +234,27 @@ const CargaIncidente = () => {
             return showToast('error', '¡Revisa bien!', 'Verifica que todos los campos estén completos.');
         }else{
             //ABC-40
-            if(!filesUploaded){
-                dataForm.imagenes = [];
-            }else{
-                dataForm.imagenes = filesUploaded;
-            }
-            console.log(dataForm)
-            if(!pdfUploaded){
-                dataForm.files = [];
-            }else{
-                dataForm.files = pdfUploaded;
-            }
             setSubmitForm(true);
             let dat = dataForm;
             dat.diagnosticos = diagnosticos;
-            console.log(dat);
+            if(!filesUploaded){
+                dat.imagenes = [];
+            }else{
+                dat.imagenes = filesUploaded;
+            }
+            if(!pdfUploaded){
+                dat.files = [];
+            }else{
+                dat.files = pdfUploaded;
+            }
             const resp = await clienteAxios.post('/incidentespersona/', dat);
             if(resp.status === 200){
                 console.log(resp.data);
                 showToast('success', '¡Exito!', `La incidencia a ${dat.nombre} fué cargada con éxito.`)
-                setTimeout(()=>{
-                    return history.push(`/incidentes/persona/${resp.data.incidente._id}`)
-                    // console.log(`enviando a /incidentes/persona/${resp.data.incidente._id}`);
-                }, 2000);
+                // setTimeout(()=>{
+                //     return history.push(`/incidentes/persona/${resp.data.incidente._id}`)
+                // }, 2000);
+                reiniciarForm();
             }else{
                 return showToast('error', '¡Error!', 'Ocurrió un error en el servidor...');
             }
@@ -263,6 +262,61 @@ const CargaIncidente = () => {
         }
         
     }
+
+    const reiniciarForm = () => {
+        setCompania(null);
+        setYaSubioImagenes(false);
+        setImagesSelected(0);
+        setFilesUploaded(null)
+        setFilteredEmpleados(null);
+        setYaSubioPdf(false);
+        setPdfSelected(0);
+        setPdfUploaded(null);
+        setDiagnosticos([{naturalezalesion: '', zonacuerpo: ''}])
+        setFormEnviado(false);
+        setSelectedEmpleado(null)
+        setDataForm({
+            nombre: '',
+            usuario: '',
+            compania: '',
+            // puesto: '',
+            lugar: '',
+            denuncia: '',
+            tipo: '',
+            numerosiniestro: '',
+            fechadenuncia: '',
+            fechaincidente: '',
+            horaincidente: '',
+            gravedad: '', 
+            horaingreso: '',
+            sector: '',
+            turno: '',
+            jefeacargo: '',
+            testigos: '',
+            estabaenpuesto: true,
+            trabajohabitual: true,
+            recalificacion: false,
+            forma: '',
+            agentematerial: '',
+            naturaleza: '',
+            zonacuerpo: '',
+            fechaalta: '',
+            diasbaja: '',
+            codigo: '',
+            titulo: '', //Story/ABC-22
+            investigacion: '',
+            causasraiz: '',
+            causasinmediatas: '',
+            causasbasicas: '',
+            causasgestion: '',
+            descripcioncausainmediata: '',
+            diagnostico: [
+                { naturalezalesion: '', zonacuerpo: ''}
+            ]
+    
+        })
+    }
+
 
     const getGeneralData = async () => {
         const resp = await clienteAxios.get('/generaldata/allData');
@@ -612,7 +666,7 @@ const CargaIncidente = () => {
                         fechadenuncia: e.value
                     })}
                 />
-                {formEnviado && !dataForm.fechadenuncia ? <small style={{color: 'red'}}>La fecha de denuncia es obligatoria.</small> : ''}
+                {((formEnviado && !dataForm.fechadenuncia) && (dataForm.denuncia === 'Denunciado' || dataForm.denuncia === 'Autodenuncia')) ? <small style={{color: 'red'}}>La fecha de denuncia es obligatoria.</small> : ''}
                 {dataForm.fechaincidente ? '' : <small>Recuerde que primero debe setear la fecha del incidente</small>}
             </div>
             <div className='p-sm-6 p-col-12'>

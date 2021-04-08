@@ -60,7 +60,7 @@ const AccidentesPersona = () => {
     const deleteIncidente = async e => {
         Swal.fire({
             title: 'Confirmación de ELIMINACIÓN de incidente.',
-            text: `Al aceptar, confirma la eliminación permanente del incidente titulado <b>${e.titulo}</b>`,
+            html: `Al aceptar, confirma la eliminación permanente del incidente titulado <b>${e.titulo}</b>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Borrar',
@@ -229,9 +229,29 @@ const AccidentesPersona = () => {
                                         label="Companía"
                                         value='compania'
                                     />
+                                    {/* <ExcelColumn 
+                                        label="sucursal"
+                                        value="sucursal"
+                                    /> */}
                                     <ExcelColumn 
                                         label="Denuncia"
                                         value="denuncia"
+                                    />
+                                    <ExcelColumn 
+                                        label="Fecha de incidente"
+                                        value="fechaincidente"
+                                    />
+                                    <ExcelColumn 
+                                        label="fechadenuncia"
+                                        value="fechadenuncia"
+                                    />
+                                    <ExcelColumn 
+                                        label="Fecha de alta"
+                                        value="fechaalta"
+                                    />
+                                    <ExcelColumn 
+                                        label="Fecha de baja"
+                                        value="diasbaja"
                                     />
                                 </ExcelSheet>
                             </ExcelFile>

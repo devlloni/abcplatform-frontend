@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import clienteAxios from '../../../config/clienteAxios';
 import { Button } from 'primereact/button';
+import { InputText } from 'primereact/inputtext';
 import { Card } from 'primereact/card';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import AuthContext from '../../../context/auth/authContext';
@@ -17,6 +18,7 @@ const Inicio = () => {
     //*STATE
     const [ logueado, setLogueado ] = useState(false);
     const [ userLogueado, setUserLogueado ] = useState(null)
+    const [ texto, setTexto ] = useState('');
 
     const [ generalData, setGeneralData ] = useState(null);
 
@@ -136,6 +138,10 @@ const Inicio = () => {
             getGeneralData();
         }
     }, [])
+
+    const FuncionHablar = (texto) => {
+        speechSynthesis.speak(new SpeechSynthesisUtterance(texto));
+    }
 
     const getGeneralData = async () => {
         const respuesta = await clienteAxios.get('/data/general');
@@ -261,6 +267,21 @@ const Inicio = () => {
                                 </div> 
                         </div>
                     </div>
+                    {/* <div className='p-grid p-fluid'>
+                        <div className='p-md-6 p-col-12'>
+                            <InputText
+                                name="texto"
+                                value={texto}
+                                onChange={(e)=> setTexto(e.target.value)}
+                            />
+                        </div>
+                        <div className='p-md-6 p-col-12'>
+                            <Button 
+                                label="Hablar"
+                                onClick={(e) => {FuncionHablar(texto)}}
+                            />
+                        </div>
+                    </div> */}
                 </div>
             ) : 
             (

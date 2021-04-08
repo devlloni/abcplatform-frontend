@@ -436,7 +436,7 @@ const EditarIncidentePropiedad = () => {
                     <hr style={{marginTop: '1.5em', marginBottom: '1.5em'}}/>
                     {renderSecondLine}
                     <hr style={{marginTop: '1.5em', marginBottom: '1.5em'}}/>
-                    {renderThirdLine}
+                    {/* {renderThirdLine} */}
                     <RenderWhiteSpace 
                         pb='4.5em'
                     />

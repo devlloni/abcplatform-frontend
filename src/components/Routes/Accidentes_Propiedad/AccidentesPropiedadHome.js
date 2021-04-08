@@ -14,7 +14,7 @@ import jspdf from 'jspdf';
 import ReactExport from 'react-export-excel';
 
 import Swal from 'sweetalert2';
-import moment from 'moment';
+import moment from '../../../plugins/moment';
 
 
 const ExcelFile = ReactExport.ExcelFile;
@@ -136,7 +136,7 @@ const AccidentesPropiedad = () => {
     const deleteIncidente = async e => {
         Swal.fire({
             title: 'Confirmación de ELIMINACIÓN de incidente.',
-            text: `Al aceptar, confirma la eliminación permanente del incidente titulado <b>${e.titulo}</b>`,
+            html: `Al aceptar, confirma la eliminación permanente del incidente titulado <b>${e.titulo}</b>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Borrar',
@@ -144,6 +144,7 @@ const AccidentesPropiedad = () => {
           }).then(async (result) => {
             if (result.value) {
                 deleteIncidentePropiedad(e._id);
+                showToast('success', 'Perfecto', `El incidente [' ${e.titulo} '] fué eliminado con éxito.`)
             } else if (result.dismiss === Swal.DismissReason.cancel) {
               return Swal.fire('¡Okey!', 'El incidente está a salvo y no fué eliminado.', 'warning');
             }
@@ -225,7 +226,7 @@ const AccidentesPropiedad = () => {
                     <div className='p-col-12 p-md-3'>
                         <Button 
                             label='Exportar a PDF'
-                            icon='far fa-file-excel'
+                            icon='far fa-file-pdf'
                             className='p-button-help'
                             disabled={ incidentesPropiedad && incidentesPropiedad.length > 0 ? false : true }
                             onClick={e => generatePdf()}
@@ -233,10 +234,11 @@ const AccidentesPropiedad = () => {
                     </div>
                     <div className='p-col-12 p-md-3'>
                         <ExcelFile
+                            filename={`[ABC] IncidentesPropiedad_${moment(new Date()).format('l')}`}
                             element={
                                 <Button 
                                     label='Exportar a CSV'
-                                    icon='far fa-file-pdf'
+                                    icon='far fa-file-excel'
                                     className='p-button-success'
                                 />
                             }
@@ -273,7 +275,14 @@ const AccidentesPropiedad = () => {
                                     label="Sector"
                                     value="sector"
                                 />
-                                
+                                <ExcelColumn 
+                                    label="Sucursal"
+                                    value="sucursal"
+                                />
+                                <ExcelColumn 
+                                    label="investigacion"
+                                    value={(col)=>htmltoText(col.investigacion)}
+                                />
                             </ExcelSheet>
                         </ExcelFile>
                     </div>

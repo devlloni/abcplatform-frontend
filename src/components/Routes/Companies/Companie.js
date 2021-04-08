@@ -86,7 +86,7 @@ const Companie = () => {
     }
 
     const submitEditCompanie = async comp => {
-        const resp = await clienteAxios.post('/companias/update',  comp);
+        const resp = await clienteAxios.post('/companias/update', comp);
         if(resp.status === 200 && resp.data.msg === 'ok'){
             setCompanieDialog(false);
             reiniciarCompania();

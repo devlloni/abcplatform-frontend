@@ -1,4 +1,4 @@
 export default {
-    env: 'PROD'
-    // env: 'TEST'
+    // env: 'PROD'
+    env: 'TEST'
 }
